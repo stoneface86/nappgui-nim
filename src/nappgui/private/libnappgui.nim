@@ -47,6 +47,7 @@ func newCompilePragma(file, flags: string): NimNode =
 {. pop .}
 
 const
+  nappguiVersion: tuple[major, minor, patch, build: int] = (1, 3, 1, 4181)
   thisDir = currentSourcePath().parentDir()
   nappguiDir = thisDir / "nappgui"
   nappguiSrcDir = nappguiDir / "src"
@@ -75,6 +76,10 @@ const
   # C flags passed when building nappgui source
   nappguiPrivateFlags = block:
     var res = joinArgs(
+      cdefine(&"NAPPGUI_MAJOR={nappguiVersion.major}"),
+      cdefine(&"NAPPGUI_MINOR={nappguiVersion.minor}"),
+      cdefine(&"NAPPGUI_REVISION={nappguiVersion.patch}"),
+      cdefine(&"NAPPGUI_BUILD={nappguiVersion.build}"),
       cdefine(&"NAPPGUI_SOURCE_DIR=\"{nappguiSrcDir}\""),
       cdefine(&"NAPPGUI_BUILD_DIR=\"{buildDir}\""),
     )

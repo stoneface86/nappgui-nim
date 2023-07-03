@@ -23,8 +23,8 @@ from this repository, https://github.com/frang75/nappgui_src.
 
 ## Source info
 
-Repository URL: https://github.com/frang75/nappgui_src
-Version: 1.3.0
-Git tag: v1.3.0
-License: MIT
-Author(s): Francisco García Collado
+- Repository URL: https://github.com/frang75/nappgui_src
+- Version: 1.3.0
+- Git tag: v1.3.0
+- License: MIT
+- Author(s): Francisco García Collado
