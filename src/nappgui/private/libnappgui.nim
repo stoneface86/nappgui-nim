@@ -1,5 +1,5 @@
 
-
+{.used.}
 # this module builds the nappgui library from our vendored source
 
 import std/[compilesettings, macros, os, strutils, strformat]
