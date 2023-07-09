@@ -1,7 +1,13 @@
+##
+## Application
+## 
+## Low-level bindings for the `osapp` library in the NAppGUI SDK.
+##
 
 import ../private/libnappgui
 import sewer
 
+# =============================================================================
 {. push importc, header: "nappgui/osapp/osapp.hxx" .}
 
 type

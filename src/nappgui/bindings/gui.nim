@@ -1,10 +1,14 @@
+##
+## GUI
+## 
+## Low-level bindings for the `gui` library in the NAppGUI SDK.
+## 
+
 
 import ../private/libnappgui
-import std/strformat
-import sewer, core
+import sewer, core, geom2d
 
-defineArrSt(uint32)
-
+# =============================================================================
 {. push importc, header: "nappgui/gui/gui.hxx" .}
 {. pragma: cenum, size: sizeof(cint) .}
 
@@ -190,7 +194,7 @@ type
     edrow*: uint32
 
   EvTbSel* = object
-    sel*: ptr ArrSt(uint32_t)
+    sel*: ptr Array[uint32_t]
 
   EvTbCell* = object
 
@@ -290,11 +294,58 @@ proc popup_get_selected*(popup: ptr PopUp): uint32_t
 {. pop .} # ===================================================================
 {. push importc, header: "nappgui/gui/edit.h" .}
 
+proc edit_create*(): ptr Edit
+proc edit_multiline*(): ptr Edit
+proc edit_OnFilter*(edit: ptr Edit, listener: ptr Listener)
+proc edit_OnChange*(edit: ptr Edit, listener: ptr Listener)
+proc edit_text*(edit: ptr Edit, text: cstring)
+proc edit_font*(edit: ptr Edit, font: ptr Font)
+proc edit_align*(edit: ptr Edit, align: align_t)
+proc edit_passmode*(edit: ptr Edit, passmode: bool_t)
+proc edit_editable*(edit: ptr Edit, is_editable: bool_t)
+proc edit_autoselect*(edit: ptr Edit, autoselect: bool_t)
+proc edit_tooltip*(edit: ptr Edit, text: cstring)
+proc edit_color*(edit: ptr Edit, color: color_t)
+proc edit_color_focus*(edit: ptr Edit, color: color_t)
+proc edit_bgcolor*(edit: ptr Edit, color: color_t)
+proc edit_bgcolor_focus*(edit: ptr Edit, color: color_t)
+proc edit_phtext*(edit: ptr Edit, text: cstring)
+proc edit_phcolor*(edit: ptr Edit, color: color_t)
+proc edit_phstyle*(edit: ptr Edit, style: uint32_t)
+proc edit_get_text*(edit: ptr Edit): cstring
+
 {. pop .} # ===================================================================
 {. push importc, header: "nappgui/gui/combo.h" .}
 
+proc combo_create*(): ptr Combo
+proc combo_OnFilter*(combo: ptr Combo, listener: ptr Listener)
+proc combo_OnChange*(combo: ptr Combo, Listener: ptr Listener)
+proc combo_text*(combo: ptr Combo, text: cstring)
+proc combo_align*(combo: ptr Combo, align: align_t)
+proc combo_tooltip*(combo: ptr Combo, text: cstring)
+proc combo_color*(combo: ptr Combo, color: color_t)
+proc combo_color_focus*(combo: ptr Combo, color: color_t)
+proc combo_bgcolor*(combo: ptr Combo, color: color_t)
+proc combo_bgcolor_focus*(combo: ptr Combo, color: color_t)
+proc combo_phtext*(combo: ptr Combo, text: cstring)
+proc combo_phcolor*(combo: ptr Combo, color: color_t)
+proc combo_phstyle*(combo: ptr Combo, style: uint32_t)
+proc combo_get_text*(combo: ptr Combo): cstring
+proc combo_count*(combo: ptr Combo): uint32_t
+proc combo_add_elem*(combo: ptr Combo, text: cstring, image: ptr Image)
+proc combo_set_elem*(combo: ptr Combo, index: uint32_t, text: cstring,
+                     image: ptr Image)
+proc combo_ins_elem*(combo: ptr Combo, index: uint32_t, text: cstring,
+                     image: ptr Image)
+proc combo_del_elem*(combo: ptr Combo, index: uint32_t)
+proc combo_duplicates*(combo: ptr Combo, duplicates: bool_t)
+
 {. pop .} # ===================================================================
 {. push importc, header: "nappgui/gui/listbox.h" .}
+
+proc listbox_create*(): ptr ListBox
+proc listbox_OnSelect*(listbox: ptr ListBox, listener: ptr Listener)
+proc listbox_size*(listbox: ptr ListBox, size: S2Df)
 
 {. pop .} # ===================================================================
 {. push importc, header: "nappgui/gui/updown.h" .}
@@ -340,8 +391,5 @@ proc popup_get_selected*(popup: ptr PopUp): uint32_t
 
 {. pop .} # ===================================================================
 {. push importc, header: "nappgui/gui/comwin.h" .}
-
-{. pop .} # ===================================================================
-{. push importc, header: "nappgui/gui/gui.h" .}
 
 {. pop .} # ===================================================================

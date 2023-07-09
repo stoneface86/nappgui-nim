@@ -1,3 +1,8 @@
+## 
+## Operating Systems Basic Services
+## 
+## Low-level bindings for the `osbs` library in the NAppGUI SDK.
+## 
 
 import ../private/libnappgui
 import sewer
@@ -107,13 +112,13 @@ type
 
 type
   Date* {.importc.} = object
-    year*: int16
-    month*: uint8
-    wday*: uint8
-    mday*: uint8
-    hour*: uint8
-    minute*: uint8
-    second*: uint8
+    year*: int16_t
+    month*: uint8_t
+    wday*: uint8_t
+    mday*: uint8_t
+    hour*: uint8_t
+    minute*: uint8_t
+    second*: uint8_t
   
   Dir* {.importc.} = object
   File* {.importc.} = object
@@ -123,7 +128,7 @@ type
   Thread* {.importc.} = object
   Socket* {.importc.} = object
   
-  FPtr_thread_main* {.importc.} = proc(data: pointer): uint32 {.noconv.}
+  FPtr_thread_main* {.importc.} = proc(data: pointer): uint32_t {.noconv.}
   FPtr_libproc* {.importc.} = proc() {.noconv.}
 
 {. pop .} # header ...
@@ -139,15 +144,16 @@ proc osbs_endian*(): endian_t
 {. pop .} # header ...
 {. push importc, header: "nappgui/osbs/bfile.h" .} #====================================
 
-proc bfile_dir_work*(pathname: cstring, size: uint32): uint32
+
+proc bfile_dir_work*(pathname: cstring, size: uint32_t): uint32_t
 proc bfile_dir_set_work*(pathname: cstring, error: ptr ferror_t): bool_t
-proc bfile_dir_home*(pathname: cstring, size: uint32): uint32
-proc bfile_dir_data*(pathname: cstring, size: uint32): uint32
-proc bfile_dir_exec*(pathname: cstring, size: uint32): uint32
+proc bfile_dir_home*(pathname: cstring, size: uint32_t): uint32_t
+proc bfile_dir_data*(pathname: cstring, size: uint32_t): uint32_t
+proc bfile_dir_exec*(pathname: cstring, size: uint32_t): uint32_t
 proc bfile_dir_create*(pathname: cstring, error: ptr ferror_t): bool_t
 proc bfile_dir_open*(pathname: cstring, error: ptr ferror_t): ptr Dir
 proc bfile_dir_close*(dir: ptr ptr Dir)
-proc bfile_dir_get*(dir: ptr Dir, name: cstring, size: uint32,
+proc bfile_dir_get*(dir: ptr Dir, name: cstring, size: uint32_t,
                     ty: ptr file_type_t, fsize: ptr uint64, updated: ptr Date,
                     error: ptr ferror_t): bool_t
 proc bfile_dir_delete*(pathname: cstring, error: ptr ferror_t): bool_t
@@ -158,10 +164,10 @@ proc bfile_lstat*(pathname: cstring, ty: ptr file_type_t, size: ptr uint64,
                   updated: ptr Date, error: ptr ferror_t): bool_t
 proc bfile_fstat*(file: ptr File, ty: ptr file_type_t, size: ptr uint64,
                   updated: ptr Date, error: ptr ferror_t): bool_t
-proc bfile_read*(file: ptr File, data: ptr byte, size: uint32,
-                 rsize: ptr uint32, error: ptr ferror_t): bool_t
-proc bfile_write*(file: ptr File, data: ptr byte, size: uint32,
-                  wsize: ptr uint32, error: ptr ferror_t): bool_t
+proc bfile_read*(file: ptr File, data: ptr byte_t, size: uint32_t,
+                 rsize: ptr uint32_t, error: ptr ferror_t): bool_t
+proc bfile_write*(file: ptr File, data: ptr byte_t, size: uint32_t,
+                  wsize: ptr uint32_t, error: ptr ferror_t): bool_t
 proc bfile_seek*(file: ptr File, offset: int64, whence: file_seek_t,
                  error: ptr ferror_t): bool_t
 proc bfile_pos*(file: ptr File): uint64
@@ -181,48 +187,48 @@ proc bmutex_unlock*(mutex: ptr Mutex)
 proc bproc_exec*(command: cstring, error: ptr perror_t): ptr Proc
 proc bproc_close*(p: ptr ptr Proc)
 proc bproc_cancel*(p: ptr Proc): bool_t
-proc bproc_wait*(p: ptr Proc): uint32
-proc bproc_finish*(p: ptr Proc, code: ptr uint32): bool_t
-proc bproc_read*(p: ptr Proc, data: ptr byte, size: uint32, rsize: ptr uint32,
+proc bproc_wait*(p: ptr Proc): uint32_t
+proc bproc_finish*(p: ptr Proc, code: ptr uint32_t): bool_t
+proc bproc_read*(p: ptr Proc, data: ptr byte_t, size: uint32_t, rsize: ptr uint32_t,
                  error: ptr perror_t): bool_t
-proc bproc_eread*(p: ptr Proc, data: ptr byte, size: uint32, rsize: ptr uint32,
+proc bproc_eread*(p: ptr Proc, data: ptr byte_t, size: uint32_t, rsize: ptr uint32_t,
                  error: ptr perror_t): bool_t
-proc bproc_write*(p: ptr Proc, data: ptr byte, size: uint32, wsize: ptr uint32,
+proc bproc_write*(p: ptr Proc, data: ptr byte_t, size: uint32_t, wsize: ptr uint32_t,
                  error: ptr perror_t): bool_t
 proc bproc_read_close*(p: ptr Proc): bool_t
 proc bproc_eread_close*(p: ptr Proc): bool_t
 proc bproc_write_close*(p: ptr Proc): bool_t
-proc bproc_exit*(code: uint32)
+proc bproc_exit*(code: uint32_t)
 
 {. pop .} # header ...
 {. push importc, header: "nappgui/osbs/bsocket.h" .} #==================================
 
-proc bsocket_connect*(ip: uint32, port: uint16, timeout_ms: uint32,
+proc bsocket_connect*(ip: uint32_t, port: uint16_t, timeout_ms: uint32_t,
                       error: ptr serror_t): ptr Socket
-proc bsocket_server*(port: uint16, max_connect: uint32,
+proc bsocket_server*(port: uint16_t, max_connect: uint32_t,
                      error: ptr serror_t): ptr Socket
-proc bsocket_accept*(socket: ptr Socket, timeout_ms: uint32,
+proc bsocket_accept*(socket: ptr Socket, timeout_ms: uint32_t,
                      error: ptr serror_t): ptr Socket
 proc bsocket_close*(socket: ptr ptr Socket)
-proc bsocket_local_ip*(socket: ptr Socket, ip: ptr uint32, port: ptr uint16)
-proc bsocket_remote_ip*(socket: ptr Socket, ip: ptr uint32, port: ptr uint16)
-proc bsocket_read_timeout*(socket: ptr Socket, timeout_ms: uint32)
-proc bsocket_write_timeout*(socket: ptr Socket, timeout_ms: uint32)
-proc bsocket_read*(socket: ptr Socket, data: ptr byte, size: uint32,
-                   rsize: ptr uint32, error: ptr serror_t): bool_t
-proc bsocket_write*(socket: ptr Socket, data: ptr byte, size: uint32,
-                    wsize: ptr uint32, error: ptr serror_t): bool_t                  
-proc bsocket_url_ip*(url: cstring, error: ptr serror_t): uint32
-proc bsocket_str_ip*(ip: cstring): uint32
-proc bsocket_host_name*(buffer: cstring, size: uint32): cstring
-proc bsocket_host_name_ip*(ip: uint32, buffer: cstring, size: uint32): cstring
-proc bsocket_ip_str*(ip: uint32): cstring
-proc bsocket_hton2*(dest: ptr byte, src: ptr byte)
-proc bsocket_hton4*(dest: ptr byte, src: ptr byte)
-proc bsocket_hton8*(dest: ptr byte, src: ptr byte)
-proc bsocket_ntoh2*(dest: ptr byte, src: ptr byte)
-proc bsocket_ntoh4*(dest: ptr byte, src: ptr byte)
-proc bsocket_ntoh8*(dest: ptr byte, src: ptr byte)
+proc bsocket_local_ip*(socket: ptr Socket, ip: ptr uint32_t, port: ptr uint16_t)
+proc bsocket_remote_ip*(socket: ptr Socket, ip: ptr uint32_t, port: ptr uint16_t)
+proc bsocket_read_timeout*(socket: ptr Socket, timeout_ms: uint32_t)
+proc bsocket_write_timeout*(socket: ptr Socket, timeout_ms: uint32_t)
+proc bsocket_read*(socket: ptr Socket, data: ptr byte_t, size: uint32_t,
+                   rsize: ptr uint32_t, error: ptr serror_t): bool_t
+proc bsocket_write*(socket: ptr Socket, data: ptr byte_t, size: uint32_t,
+                    wsize: ptr uint32_t, error: ptr serror_t): bool_t                  
+proc bsocket_url_ip*(url: cstring, error: ptr serror_t): uint32_t
+proc bsocket_str_ip*(ip: cstring): uint32_t
+proc bsocket_host_name*(buffer: cstring, size: uint32_t): cstring
+proc bsocket_host_name_ip*(ip: uint32_t, buffer: cstring, size: uint32_t): cstring
+proc bsocket_ip_str*(ip: uint32_t): cstring
+proc bsocket_hton2*(dest: ptr byte_t, src: ptr byte_t)
+proc bsocket_hton4*(dest: ptr byte_t, src: ptr byte_t)
+proc bsocket_hton8*(dest: ptr byte_t, src: ptr byte_t)
+proc bsocket_ntoh2*(dest: ptr byte_t, src: ptr byte_t)
+proc bsocket_ntoh4*(dest: ptr byte_t, src: ptr byte_t)
+proc bsocket_ntoh8*(dest: ptr byte_t, src: ptr byte_t)
 
 {. pop .} # header ...
 {. push importc, header: "nappgui/osbs/bthread.h" .} #==================================
@@ -236,9 +242,9 @@ template bthread_create*[T](
   bthread_create_imp(thmain, data)
 proc bthread_close*(thread: ptr ptr Thread)
 proc bthread_cancel*(thread: ptr Thread): bool_t
-proc bthread_wait*(thread: ptr Thread): uint32
-proc bthread_finish*(thread: ptr Thread, code: ptr uint32): bool_t
-proc bthread_sleep*(milliseconds: uint32)
+proc bthread_wait*(thread: ptr Thread): uint32_t
+proc bthread_finish*(thread: ptr Thread, code: ptr uint32_t): bool_t
+proc bthread_sleep*(milliseconds: uint32_t)
 
 {. pop .} # header ...
 {. push importc, header: "nappgui/osbs/btime.h" .} #====================================
@@ -264,7 +270,7 @@ template dlib_var*[T](dlib: ptr DLib, varname: cstring): ptr T =
 {. pop .} # header ...
 {. push importc, header: "nappgui/osbs/log.h" .} #======================================
 
-proc log_printf*(format: cstring): uint32 {.varargs.}
+proc log_printf*(format: cstring): uint32_t {.varargs.}
 proc log_output*(std: bool_t, err: bool_t)
 proc log_file*(pathname: cstring)
 proc log_get_file*(): cstring
