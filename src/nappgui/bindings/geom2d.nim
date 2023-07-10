@@ -7,110 +7,88 @@
 import ../private/libnappgui
 import sewer, core
 
-{. push importc, header: "nappgui/geom2d/geom2d.hxx" .} #======================
+{. push header: "nappgui/geom2d/geom2d.hxx" .} #======================
 
 type
-  V2Df* = object
+  V2Df* {.importc.} = object
     x*: real32_t
     y*: real32_t
   
-  V2Dd* = object
+  V2Dd* {.importc.} = object
     x*: real64_t
     y*: real64_t
   
-  S2Df* = object
+  S2Df* {.importc.} = object
     width*: real32_t
     height*: real32_t
   
-  S2Dd* = object
+  S2Dd* {.importc.} = object
     width*: real64_t
     height*: real64_t
 
-  R2Df* = object
+  R2Df* {.importc.} = object
     pos*: V2Df
     size*: S2Df
   
-  R2Dd* = object
+  R2Dd* {.importc.} = object
     pos*: V2Dd
     size*: S2Dd
   
-  T2Df* = object
+  T2Df* {.importc.} = object
     i*: V2Df
     j*: V2Df
     p*: V2Df
 
-  T2Dd* = object
+  T2Dd* {.importc.} = object
     i*: V2Dd
     j*: V2Dd
     p*: V2Dd
 
-  Seg2Df* = object
+  Seg2Df* {.importc.} = object
     p0*: V2Df
     p1*: V2Df
   
-  Seg2Dd* = object
+  Seg2Dd* {.importc.} = object
     p0*: V2Dd
     p1*: V2Dd
   
-  Cir2Df* = object
+  Cir2Df* {.importc.} = object
     c*: V2Df
     r*: real32_t
   
-  Cir2Dd* = object
+  Cir2Dd* {.importc.} = object
     c*: V2Dd
     r*: real64_t
   
-  Box2Df* = object
+  Box2Df* {.importc.} = object
     min*: V2Df
     max*: V2Df
   
-  Box2Dd* = object
+  Box2Dd* {.importc.} = object
     min*: V2Dd
     max*: V2Dd
   
-  OBB2Df* = object
-  OBB2Dd* = object
+  OBB2Df* {.importc.} = object
+  OBB2Dd* {.importc.} = object
   
-  Tri2Df* = object
+  Tri2Df* {.importc.} = object
     p0*: V2Df
     p1*: V2Df
     p2*: V2Df
   
-  Tri2Dd* = object
+  Tri2Dd* {.importc.} = object
     p0*: V2Dd
     p1*: V2Dd
     p2*: V2Dd
 
-  Pol2Df* = object
-  Pol2Dd* = object
+  Pol2Df* {.importc.} = object
+  Pol2Dd* {.importc.} = object
 
-  Col2Df* = object
-  Col2Dd* = object
-
-declSt(V2Df)
-declSt(V2Dd)
-declSt(S2Df)
-declSt(S2Dd)
-declSt(R2Df)
-declSt(R2Dd)
-declSt(T2Df)
-declSt(T2Dd)
-declSt(Seg2Df)
-declSt(Seg2Dd)
-declSt(Cir2Df)
-declSt(Cir2Dd)
-declSt(Box2Df)
-declSt(Box2Dd)
-declSt(Tri2Df)
-declSt(Tri2Dd)
-declPt(Pol2Df)
-declPt(Pol2Dd)
-declSt(Col2Df)
-declSt(Col2Dd)
-
+  Col2Df* {.importc.} = object
+  Col2Dd* {.importc.} = object
 
 {. pop .} # ===================================================================
-{. push importc, header: "nappgui/geom2d/v2d.h" .}
+{. push importc, noconv, header: "nappgui/geom2d/v2d.h" .}
 
 # 2D Vectors
 
@@ -168,7 +146,7 @@ proc v2d_angled*(v1: ptr V2Dd, v2: ptr V2Dd): real64_t
 proc v2d_rotated*(v: ptr V2Dd, a: real64_t)
 
 {. pop .} # ===================================================================
-{. push importc, header: "nappgui/geom2d/s2d.h" .}
+{. push importc, noconv, header: "nappgui/geom2d/s2d.h" .}
 
 # 2D Size
 
@@ -180,7 +158,7 @@ proc s2df*(width: real32_t, height: real32_t): S2Df
 proc s2dd*(width: real64_t, height: real64_t): S2Dd
 
 {. pop .} # ===================================================================
-{. push importc, header: "nappgui/geom2d/r2d.h" .}
+{. push importc, noconv, header: "nappgui/geom2d/r2d.h" .}
 
 # 2D Rectangles
 
@@ -204,7 +182,7 @@ proc r2d_joind*(r2d: ptr R2Dd, src: ptr R2Dd)
 
 
 {. pop .} # ===================================================================
-{. push importc, header: "nappgui/geom2d/t2d.h" .}
+{. push importc, noconv, header: "nappgui/geom2d/t2d.h" .}
 
 # 2D Transformations
 
@@ -237,7 +215,7 @@ proc t2d_decomposed*(td2: ptr T2Dd, pos: ptr V2Dd, angle: ptr real64_t,
                      sc: ptr V2Dd)
 
 {. pop .} # ===================================================================
-{. push importc, header: "nappgui/geom2d/seg2d.h" .}
+{. push importc, noconv, header: "nappgui/geom2d/seg2d.h" .}
 
 # 2D Segments
 
@@ -262,7 +240,7 @@ proc seg2d_sqdistd*(seg1: ptr Seg2Dd, seg2: ptr Seg2Dd, t1: ptr real64_t,
                     t2: ptr real64_t): real64_t                  
 
 {. pop .} # ===================================================================
-{. push importc, header: "nappgui/geom2d/cir2d.h" .}
+{. push importc, noconv, header: "nappgui/geom2d/cir2d.h" .}
 
 # 2D Circles
 
@@ -285,7 +263,7 @@ proc cir2d_aread*(cir: ptr Cir2Dd): real64_t
 proc cir2d_is_nulld*(cir: ptr Cir2Dd): bool_t
 
 {. pop .} # ===================================================================
-{. push importc, header: "nappgui/geom2d/box2d.h" .}
+{. push importc, noconv, header: "nappgui/geom2d/box2d.h" .}
 
 # 2D Boxes
 
@@ -316,7 +294,7 @@ proc box2d_aread*(box: ptr Box2Dd): real64_t
 proc box2d_is_nulld*(box: ptr Box2Dd): bool_t
 
 {. pop .} # ===================================================================
-{. push importc, header: "nappgui/geom2d/obb2d.h" .}
+{. push importc, noconv, header: "nappgui/geom2d/obb2d.h" .}
 
 # 2D Oriented Boxes
 
@@ -357,7 +335,7 @@ proc obb2d_aread*(obb: ptr OBB2Dd): real64_t
 proc obb2d_boxd*(obb: ptr OBB2Dd): Box2Dd
 
 {. pop .} # ===================================================================
-{. push importc, header: "nappgui/geom2d/tri2d.h" .}
+{. push importc, noconv, header: "nappgui/geom2d/tri2d.h" .}
 
 # 2D Triangles
 
@@ -378,7 +356,7 @@ proc tri2d_ccwd*(tri: ptr Tri2Dd): bool_t
 proc tri2d_centroidd*(tri: ptr Tri2Dd): V2Dd
 
 {. pop .} # ===================================================================
-{. push importc, header: "nappgui/geom2d/pol2d.h" .}
+{. push importc, noconv, header: "nappgui/geom2d/pol2d.h" .}
 
 # 2D Polygons
 
@@ -395,8 +373,8 @@ proc pol2d_ccwf*(pol: ptr Pol2Df): bool_t
 proc pol2d_convexf*(pol: ptr Pol2Df): bool_t
 proc pol2d_centroidf*(pol: ptr Pol2Df): V2Df
 proc pol2d_visual_centerf*(pol: ptr Pol2Df): V2Df
-proc pol2d_trianglesf*(pol: ptr Pol2Df): ptr ArrSt(Tri2Df)
-proc pol2d_convex_partitionf*(pol: ptr Pol2Df): ptr ArrPt(Pol2Df)
+proc pol2d_trianglesf*(pol: ptr Pol2Df): ptr Array[Tri2Df]
+proc pol2d_convex_partitionf*(pol: ptr Pol2Df): ptr Array[ptr Pol2Df]
 
 proc pol2d_created*(points: ptr V2Dd, n: uint32_t): ptr Pol2Dd
 proc pol2d_convex_hulld*(points: ptr V2Dd, n: uint32_t): ptr Pol2Dd
@@ -415,7 +393,7 @@ proc pol2d_trianglesd*(pol: ptr Pol2Dd): ptr Array[Tri2Dd]
 proc pol2d_convex_partitiond*(pol: ptr Pol2Dd): ptr Array[ptr Pol2Dd]
 
 {. pop .} # ===================================================================
-{. push importc, header: "nappgui/geom2d/col2d.h" .}
+{. push importc, noconv, header: "nappgui/geom2d/col2d.h" .}
 
 # 2D Collisions
 

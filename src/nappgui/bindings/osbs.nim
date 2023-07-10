@@ -7,9 +7,9 @@
 import ../private/libnappgui
 import sewer
 
+# =============================================================================
+{. push header: "nappgui/osbs/osbs.hxx" .}
 {. pragma: cenum, importc, size: sizeof(cint) .}
-
-{. push header: "nappgui/osbs/osbs.hxx" .} #===================================
 
 type
   platform_t* {.cenum.} = enum
@@ -111,7 +111,7 @@ type
     ekSOK
 
 type
-  Date* {.importc.} = object
+  Date* {.importc.}   = object
     year*: int16_t
     month*: uint8_t
     wday*: uint8_t
@@ -120,19 +120,19 @@ type
     minute*: uint8_t
     second*: uint8_t
   
-  Dir* {.importc.} = object
-  File* {.importc.} = object
-  Mutex* {.importc.} = object
-  Proc* {.importc.} = object
-  DLib* {.importc.} = object
+  Dir* {.importc.}    = object
+  File* {.importc.}   = object
+  Mutex* {.importc.}  = object
+  Proc* {.importc.}   = object
+  DLib* {.importc.}   = object
   Thread* {.importc.} = object
   Socket* {.importc.} = object
   
   FPtr_thread_main* {.importc.} = proc(data: pointer): uint32_t {.noconv.}
   FPtr_libproc* {.importc.} = proc() {.noconv.}
 
-{. pop .} # header ...
-{. push importc, header: "nappgui/osbs/osbs.h" .} #=====================================
+{. pop .} # ===================================================================
+{. push importc, noconv, header: "nappgui/osbs/osbs.h" .}
 
 proc osbs_start*()
 proc osbs_finish*()
@@ -141,8 +141,8 @@ proc osbs_windows*(): win_t
 proc osbs_endian*(): endian_t
 #proc osbs_memory_mt*(mutex: ptr Mutex)
 
-{. pop .} # header ...
-{. push importc, header: "nappgui/osbs/bfile.h" .} #====================================
+{. pop .} # ===================================================================
+{. push importc, noconv, header: "nappgui/osbs/bfile.h" .}
 
 
 proc bfile_dir_work*(pathname: cstring, size: uint32_t): uint32_t
@@ -173,16 +173,16 @@ proc bfile_seek*(file: ptr File, offset: int64, whence: file_seek_t,
 proc bfile_pos*(file: ptr File): uint64
 proc bfile_delete*(pathname: cstring, error: ptr ferror_t): bool_t
 
-{. pop .} # header ...
-{. push importc, header: "nappgui/osbs/bmutex.h" .} #===================================
+{. pop .} # ===================================================================
+{. push importc, noconv, header: "nappgui/osbs/bmutex.h" .}
 
 proc bmutex_create*(): ptr Mutex
 proc bmutex_close*(mutex: ptr ptr Mutex)
 proc bmutex_lock*(mutex: ptr Mutex)
 proc bmutex_unlock*(mutex: ptr Mutex)
 
-{. pop .} # header ...
-{. push importc, header: "nappgui/osbs/bproc.h" .} #====================================
+{. pop .} # ===================================================================
+{. push importc, noconv, header: "nappgui/osbs/bproc.h" .}
 
 proc bproc_exec*(command: cstring, error: ptr perror_t): ptr Proc
 proc bproc_close*(p: ptr ptr Proc)
@@ -200,8 +200,8 @@ proc bproc_eread_close*(p: ptr Proc): bool_t
 proc bproc_write_close*(p: ptr Proc): bool_t
 proc bproc_exit*(code: uint32_t)
 
-{. pop .} # header ...
-{. push importc, header: "nappgui/osbs/bsocket.h" .} #==================================
+{. pop .} # ===================================================================
+{. push importc, noconv, header: "nappgui/osbs/bsocket.h" .}
 
 proc bsocket_connect*(ip: uint32_t, port: uint16_t, timeout_ms: uint32_t,
                       error: ptr serror_t): ptr Socket
@@ -230,8 +230,8 @@ proc bsocket_ntoh2*(dest: ptr byte_t, src: ptr byte_t)
 proc bsocket_ntoh4*(dest: ptr byte_t, src: ptr byte_t)
 proc bsocket_ntoh8*(dest: ptr byte_t, src: ptr byte_t)
 
-{. pop .} # header ...
-{. push importc, header: "nappgui/osbs/bthread.h" .} #==================================
+{. pop .} # ===================================================================
+{. push importc, noconv, header: "nappgui/osbs/bthread.h" .}
 
 proc bthread_create_imp*(thmain: ptr FPtr_thread_main,
                          data: pointer): ptr Thread
@@ -246,16 +246,16 @@ proc bthread_wait*(thread: ptr Thread): uint32_t
 proc bthread_finish*(thread: ptr Thread, code: ptr uint32_t): bool_t
 proc bthread_sleep*(milliseconds: uint32_t)
 
-{. pop .} # header ...
-{. push importc, header: "nappgui/osbs/btime.h" .} #====================================
+{. pop .} # ===================================================================
+{. push importc, noconv, header: "nappgui/osbs/btime.h" .}
 
 proc btime_now*(): uint64
 proc btime_date*(date: ptr Date)
 proc btime_to_micro*(date: ptr Date): uint64
 proc btime_to_date*(micro: uint64, date: ptr Date)
 
-{. pop .} # header ...
-{. push importc, header: "nappgui/osbs/dlib.h" .} #=====================================
+{. pop .} # ===================================================================
+{. push importc, noconv, header: "nappgui/osbs/dlib.h" .}
 
 proc dlib_open*(path: cstring, libname: cstring): ptr DLib
 proc dlib_close*(dlib: ptr ptr DLib)
@@ -267,12 +267,12 @@ template dlib_proc*[T](dlib: ptr DLib, procname: cstring): ptr T =
 template dlib_var*[T](dlib: ptr DLib, varname: cstring): ptr T =
   cast[ptr T](dlib_var_imp(dlib, varname))
 
-{. pop .} # header ...
-{. push importc, header: "nappgui/osbs/log.h" .} #======================================
+{. pop .} # ===================================================================
+{. push importc, noconv, header: "nappgui/osbs/log.h" .}
 
 proc log_printf*(format: cstring): uint32_t {.varargs.}
 proc log_output*(std: bool_t, err: bool_t)
 proc log_file*(pathname: cstring)
 proc log_get_file*(): cstring
 
-{. pop .} # header ...
+{. pop .} # ===================================================================

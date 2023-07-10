@@ -10,7 +10,7 @@ import std/[macros, strformat]
 
 # =============================================================================
 {. push importc, header: "nappgui/core/core.hxx" .}
-{. pragma: cenum, size: sizeof(cint) .}
+{. pragma: cenum, importc, size: sizeof(cint) .}
 
 # Core library types
 
@@ -202,35 +202,35 @@ type
 
     ekTRESERVED
 
-  Array*[T] {.importc.} = object
-  RBTree*[T] = object
-  Buffer* = object
-  String* = object
-  Stream* = object
-  RegEx* = object
-  Event* = object
-  KeyBuf* = object
-  Listener* = object
-  DirEntry* = object
+  Array*[T] {.importc.}   = object
+  RBTree*[T] {.importc.}  = object
+  Buffer* {.importc.}     = object
+  String* {.importc.}     = object
+  Stream* {.importc.}     = object
+  RegEx* {.importc.}      = object
+  Event* {.importc.}      = object
+  KeyBuf* {.importc.}     = object
+  Listener* {.importc.}   = object
+  DirEntry* {.importc.}   = object
     name*: ptr String
     `type`*: file_type_t
     size*: uint64_t
     date*: Date
-  EvFileDir* = object
+  EvFileDir* {.importc.}  = object
     pathname*: cstring
     level*: uint32_t
-  ResPack* = object
-  ResId* = object
-  Clock* = object
+  ResPack* {.importc.}    = object
+  ResId* {.importc.}      = object
+  Clock* {.importc.}      = object
 
-  FPtr_remove* = proc(obj: pointer) {.noconv.}
-  FPtr_event_handler* = proc(obj: pointer, evt: ptr Event) {.noconv.}
-  FPtr_read* = proc(stream: ptr Stream): pointer {.noconv.}
-  FPtr_read_init* = proc(stream: ptr Stream, obj: pointer) {.noconv.}
-  FPtr_write* = proc(stream: ptr Stream, obj: pointer) {.noconv.}
+  FPtr_remove* {.importc.} = proc(obj: pointer) {.noconv.}
+  FPtr_event_handler* {.importc.} = proc(obj: pointer, evt: ptr Event) {.noconv.}
+  FPtr_read* {.importc.} = proc(stream: ptr Stream): pointer {.noconv.}
+  FPtr_read_init* {.importc.} = proc(stream: ptr Stream, obj: pointer) {.noconv.}
+  FPtr_write* {.importc.} = proc(stream: ptr Stream, obj: pointer) {.noconv.}
 
 {. pop .} #====================================================================
-{. push importc, header: "nappgui/core/core.h" .}
+{. push importc, noconv, header: "nappgui/core/core.h" .}
 
 # Core library
 
@@ -238,7 +238,7 @@ proc core_start*()
 proc core_finish*()
 
 {. pop .} #====================================================================
-{. push importc, header: "nappgui/core/heap.h" .}
+{. push importc, noconv, header: "nappgui/core/heap.h" .}
 
 # Heap memory manager
 
@@ -304,7 +304,7 @@ proc heap_auditor_add*(name: cstring)
 proc heap_auditor_delete*(name: cstring)
 
 {. pop .} #====================================================================
-{. push importc, header: "nappgui/core/buffer.h" .}
+{. push importc, noconv, header: "nappgui/core/buffer.h" .}
 
 # Buffers
 
@@ -316,7 +316,7 @@ proc buffer_data*(buffer: ptr Buffer): ptr byte_t
 proc buffer_const*(buffer: ptr Buffer): ptr byte_t
 
 {. pop .} #====================================================================
-{. push importc, header: "nappgui/core/string.h" .}
+{. push importc, noconv, header: "nappgui/core/strings.h" .}
 
 # Strings
 
@@ -378,7 +378,7 @@ proc str_split_pathext*(pathname: cstring, path: ptr ptr String,
                         file: ptr ptr String, ext: ptr ptr String)
 proc str_filename*(pathname: cstring): cstring
 proc str_filext*(pathname: cstring): cstring
-#proc str_find*()                                            
+proc str_find*(arr: ptr Array[ptr String], str: cstring): uint32_t                                            
 proc str_to_i8*(str: cstring, base: uint32_t, error: ptr bool_t): int8_t
 proc str_to_i16*(str: cstring, base: uint32_t, error: ptr bool_t): int16_t
 proc str_to_i32*(str: cstring, base: uint32_t, error: ptr bool_t): int32_t
@@ -391,7 +391,7 @@ proc str_to_r32*(str: cstring, error: ptr bool_t): real32_t
 proc str_to_r64*(str: cstring, error: ptr bool_t): real64_t
 
 {. pop .} #====================================================================
-{. push importc, header: "nappgui/core/stream.h" .}
+{. push importc, noconv, header: "nappgui/core/stream.h" .}
 
 # Streams
 
@@ -489,7 +489,7 @@ template stm_write_enum*[T: enum](stm: ptr Stream, value: T) =
   stm_write_i32(stm, cast[int32_t](value))
 
 {. pop .} #====================================================================
-{. push importc, header: "nappgui/core/array.h" .}
+{. push importc, noconv, header: "nappgui/core/array.h" .}
 
 proc array_create*[T](esize: uint16_t, `type`: cstring): ptr Array[T]
 proc array_copy*[T](arr: ptr Array[T], func_copy: FPtr_scopy, ty: cstring): ptr Array[T]
@@ -527,7 +527,7 @@ proc array_bsearch*[T](arr: ptr Array[T], func_compare: FPtr_compare, key: point
 proc array_bsearch_ptr*[T: ptr](arr: ptr Array[T], func_compare: FPtr_compare, key: pointer, pos: ptr uint32_t): ptr byte_t
 
 {. pop .} #====================================================================
-{. push importc, header: "nappgui/core/rbtree.h" .}
+{. push importc, noconv, header: "nappgui/core/rbtree.h" .}
 
 proc rbtree_create*[T](cmp: FPtr_compare, esize: uint16_t, ksize: uint16_t,
                        ty: cstring): ptr RBTree[T]
@@ -555,7 +555,7 @@ proc rbtree_get_key*[T](tree: ptr RBTree[T]): cstring
 proc rbtree_check*[T](tree: ptr RBTree[T]): bool_t                                            
 
 {. pop .} #====================================================================
-{. push importc, header: "nappgui/core/regex.h" .}
+{. push importc, noconv, header: "nappgui/core/regex.h" .}
 
 # Regular expressions
 
@@ -564,7 +564,7 @@ proc regex_destroy*(regex: ptr ptr RegEx)
 proc regex_match*(regex: ptr Regex, str: cstring): bool_t
 
 {. pop .} #====================================================================
-{. push importc, header: "nappgui/core/dbind.h" .}
+{. push importc, noconv, header: "nappgui/core/dbind.h" .}
 
 # Data binding
 
@@ -586,7 +586,7 @@ proc dbind_increment_imp*(`type`: cstring, mname: cstring, incr: pointer)
 proc dbind_suffix_imp*(`type`: cstring, mname: cstring, suffix: cstring)
 
 {. pop .} #====================================================================
-{. push importc, header: "nappgui/core/event.h" .}
+{. push importc, noconv, header: "nappgui/core/event.h" .}
 
 # Event handling
 
@@ -606,7 +606,7 @@ proc event_result_imp*(event: ptr Event, `type`: cstring): pointer
 
 
 {. pop .} #====================================================================
-{. push importc, header: "nappgui/core/keybuf.h" .}
+{. push importc, noconv, header: "nappgui/core/keybuf.h" .}
 
 # Keyboard Buffer
 
@@ -620,7 +620,7 @@ proc keybuf_str*(key: vkey_t): cstring
 proc keybuf_dump*(buffer: ptr KeyBuf)
 
 {. pop .} #====================================================================
-{. push importc, header: "nappgui/core/hfile.h" .}
+{. push importc, noconv, header: "nappgui/core/hfile.h" .}
 
 # High level file/directory operations
 
@@ -650,7 +650,7 @@ proc hfile_appdata*(filename: cstring): ptr String
 proc hfile_home_dir*(path: cstring): ptr String
 
 {. pop .} #====================================================================
-{. push importc, header: "nappgui/core/respack.h" .}
+{. push importc, noconv, header: "nappgui/core/respack.h" .}
 
 # Resource packs
 
@@ -659,7 +659,7 @@ proc respack_text*(pack: ptr ResPack, id: ResId): cstring
 proc respack_file*(pack: ptr ResPack, id: ResId, size: ptr uint32_t): ptr byte_t
 
 {. pop .} #====================================================================
-{. push importc, header: "nappgui/core/date.h" .}
+{. push importc, noconv, header: "nappgui/core/date.h" .}
 
 # Dates
 
@@ -681,7 +681,7 @@ proc date_month_en*(month: month_t): cstring
 proc date_month_es*(month: month_t): cstring
 
 {. pop .} #====================================================================
-{. push importc, header: "nappgui/core/clock.h" .}
+{. push importc, noconv, header: "nappgui/core/clock.h" .}
 
 # Clocks
 
