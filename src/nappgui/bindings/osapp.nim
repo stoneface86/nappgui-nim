@@ -5,18 +5,18 @@
 ##
 
 import ../private/libnappgui
-import sewer
+import sewer, gui
 
 # =============================================================================
-{. push importc, header: "nappgui/osapp/osapp.hxx" .}
+{. push header: "nappgui/osapp/osapp.hxx" .}
 
 type
-  FPtr_task_main* = proc(data: pointer): uint32 {.noconv.}
-  FPtr_task_update* = proc(data: pointer) {.noconv.}
-  FPtr_task_end* = proc(data: pointer, rvalue: uint32) {.noconv.}
+  FPtr_task_main* {.importc.} = proc(data: pointer): uint32 {.noconv.}
+  FPtr_task_update* {.importc.} = proc(data: pointer) {.noconv.}
+  FPtr_task_end* {.importc.} = proc(data: pointer, rvalue: uint32) {.noconv.}
 
 {. pop .} # ===================================================================
-{. push importc, header: "nappgui/osapp/osapp.h" .}
+{. push importc, noconv, header: "nappgui/osapp/osapp.h" .}
 
 proc osapp_finish*()
 proc osapp_task_imp*(data: pointer, updtime: float32,
@@ -24,17 +24,17 @@ proc osapp_task_imp*(data: pointer, updtime: float32,
                      func_task_update: ptr FPtr_task_update,
                      func_task_end: ptr FPtr_task_end)
 proc osapp_menubar*(menu: ptr Menu, window: ptr Window)
-proc osapp_open_url(url: cstring)
+proc osapp_open_url*(url: cstring)
 
 {. pop .} # ===================================================================
-{. push importc, header: "nappgui/osapp/osmain.hxx" .}
+{. push importc, noconv, header: "nappgui/osapp/osmain.hxx" .}
 
 type
   FPtr_app_create* = proc() {.noconv.}
   FPtr_app_update* = proc(app: pointer, prtime: float64, ctime: float64)
 
 {. pop .} # ===================================================================
-{. push importc, header: "nappgui/osapp/osmain.h" .}
+{. push importc, noconv, header: "nappgui/osapp/osmain.h" .}
 
 proc osmain_imp*(argc: uint32, argv: cstringArray, instance: pointer,
                  lframe: float64, func_create: ptr FPtr_app_create,
