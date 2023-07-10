@@ -4,6 +4,9 @@
 
 import std/[compilesettings, macros, os, strutils, strformat]
 
+when defined(windows) and not defined(vcc):
+  {.error: "VCC is required. Compile with --cc:vcc" .}
+
 type
   CmakeConfig = enum
     ccDebug
@@ -82,6 +85,15 @@ const
       cdefine(&"NAPPGUI_BUILD={nappguiVersion.build}"),
       cdefine(&"NAPPGUI_SOURCE_DIR=\"{nappguiSrcDir}\""),
       cdefine(&"NAPPGUI_BUILD_DIR=\"{buildDir}\""),
+      cinclude(nappguiSrcDir/"core"),
+      cinclude(nappguiSrcDir/"draw2d"),
+      cinclude(nappguiSrcDir/"geom2d"),
+      cinclude(nappguiSrcDir/"gui"),
+      cinclude(nappguiSrcDir/"inet"),
+      cinclude(nappguiSrcDir/"osapp"),
+      cinclude(nappguiSrcDir/"osbs"),
+      cinclude(nappguiSrcDir/"osgui"),
+      cinclude(nappguiSrcDir/"sewer")
     )
     when defined(windows):
       # nim adds /DWIN32_LEAN_AND_MEAN for some reason, but we need /DWIN32 when compiling
@@ -92,25 +104,25 @@ const
         res,
         &"/EHsc /FI {defs}"
       )
+    elif defined(linux):
+      res = joinArgs(
+        res,
+        staticExec("pkg-config gtk+-3.0 --cflags-only-I"),
+        cdefine("__GTK3__")
+      )
     res
 
 
-template libraryBuilder(libname: string, depends: openArray[string], body: untyped) =
+template libraryBuilder(libname: string, body: untyped) =
   block:
     const 
       libpath = nappguiSrcDir / libname
-      passc = block:
-        var res = nappguiPrivateFlags
-        for dep in depends:
-          res.add(' ')
-          res.add(cinclude(nappguiSrcDir / dep))
-        res
       
     macro compile(path: static[string], flags: static[string] = "") {. inject .} =
-      result = newCompilePragma(libpath / path, joinArgs(passc, flags))
+      result = newCompilePragma(libpath / path, joinArgs(nappguiPrivateFlags, flags))
     body
 
-libraryBuilder("sewer", ["sewer"]):
+libraryBuilder("sewer"):
   compile "blib.c"
   compile "bmath.cpp"
   compile "bmem.c"
@@ -128,7 +140,7 @@ libraryBuilder("sewer", ["sewer"]):
     compile "unix/bmem_unix.c"
     compile "unix/bstdimp.c"
 
-libraryBuilder("osbs", ["osbs", "sewer"]):
+libraryBuilder("osbs"):
   compile "bsocket.c"
   compile "log.c"
   compile "osbs.c"
@@ -156,7 +168,7 @@ libraryBuilder("osbs", ["osbs", "sewer"]):
     compile "unix/dlib.c"
     compile "unix/sinfo_unix.c"
 
-libraryBuilder("core", ["core", "osbs", "sewer"]):
+libraryBuilder("core"):
     compile "array.c"
     compile "bhash.c"
     compile "buffer.c"
@@ -178,7 +190,7 @@ libraryBuilder("core", ["core", "osbs", "sewer"]):
     compile "core.cpp"
     compile "event.cpp"
 
-libraryBuilder("geom2d", ["geom2d", "core", "osbs", "sewer"]):
+libraryBuilder("geom2d"):
   compile "box2d.cpp"
   compile "cir2d.cpp"
   compile "col2d.cpp"
@@ -193,7 +205,7 @@ libraryBuilder("geom2d", ["geom2d", "core", "osbs", "sewer"]):
   compile "tri2d.cpp"
   compile "v2d.cpp"
 
-libraryBuilder("draw2d", ["draw2d", "geom2d", "core", "osbs", "sewer"]):
+libraryBuilder("draw2d"):
   compile "color.c"
   compile "dctx.c"
   compile "draw2d.c"
@@ -206,15 +218,10 @@ libraryBuilder("draw2d", ["draw2d", "geom2d", "core", "osbs", "sewer"]):
   compile "drawg.cpp"
 
   when defined(linux):
-    const 
-      linuxflags = joinArgs(
-        staticExec("pkg-config gtk+-3.0 --cflags-only-I"),
-        cdefine("__GTK3__")
-      )
-    compile "gtk3/dctx_gtk.c", linuxflags
-    compile "gtk3/draw_gtk.c", linuxflags
-    compile "gtk3/osfont.c", linuxflags
-    compile "gtk3/osimage.c", linuxflags
+    compile "gtk3/dctx_gtk.c"
+    compile "gtk3/draw_gtk.c"
+    compile "gtk3/osfont.c"
+    compile "gtk3/osimage.c"
   elif defined(macosx):
     compile "osx/dctx_osx.m"
     compile "osx/draw_osx.m"
@@ -225,6 +232,133 @@ libraryBuilder("draw2d", ["draw2d", "geom2d", "core", "osbs", "sewer"]):
     compile "win/draw_win.cpp"
     compile "win/osfont.cpp"
     compile "win/osimage.cpp"
+
+libraryBuilder("gui"):
+  compile "button.c"
+  compile "combo.c"
+  compile "component.c"
+  compile "comwin.c"
+  compile "drawctrl.c"
+  compile "edit.c"
+  compile "gbind.c"
+  compile "globals.c"
+  compile "gui.c"
+  compile "imageview.c"
+  compile "label.c"
+  compile "layout.c"
+  compile "listbox.c"
+  compile "menu.c"
+  compile "menuitem.c"
+  compile "panel.c"
+  compile "popup.c"
+  compile "progress.c"
+  compile "res_gui.c"
+  compile "slider.c"
+  compile "splitview.c"
+  compile "tableview.c"
+  compile "textview.c"
+  compile "updown.c"
+  compile "view.c"
+  compile "window.c"
+
+libraryBuilder("osgui"):
+  compile "osgui.c"
+  compile "osguictx.c"
+  when defined(linux):
+    compile "gtk3/osbutton.c"
+    compile "gtk3/oscombo.c"
+    compile "gtk3/oscomwin.c"
+    compile "gtk3/oscontrol.c"
+    compile "gtk3/osdrawctrl.c"
+    compile "gtk3/osedit.c"
+    compile "gtk3/osglobals.c"
+    compile "gtk3/osgui_gtk.c"
+    compile "gtk3/oslabel.c"
+    compile "gtk3/oslistener.c"
+    compile "gtk3/osmenu.c"
+    compile "gtk3/osmenuitem.c"
+    compile "gtk3/ospanel.c"
+    compile "gtk3/ospopup.c"
+    compile "gtk3/osprogress.c"
+    compile "gtk3/osslider.c"
+    compile "gtk3/ossplit.c"
+    compile "gtk3/ostext.c"
+    compile "gtk3/osupdown.c"
+    compile "gtk3/osview.c"
+    compile "gtk3/oswindow.c"
+  elif defined(macosx):
+    compile "osx/osbutton.m"
+    compile "osx/oscolor.m"
+    compile "osx/oscombo.m"
+    compile "osx/oscomwin.m"
+    compile "osx/oscontrol.m"
+    compile "osx/osdrawctrl.m"
+    compile "osx/osedit.m"
+    compile "osx/osglobals.m"
+    compile "osx/osgui_osx.m"
+    compile "osx/oslabel.m"
+    compile "osx/oslistener.m"
+    compile "osx/osmenu.m"
+    compile "osx/osmenuitem.m"
+    compile "osx/ospanel.m"
+    compile "osx/ospopup.m"
+    compile "osx/osprogress.m"
+    compile "osx/osslider.m"
+    compile "osx/ossplit.m"
+    compile "osx/ostext.m"
+    compile "osx/osupdown.m"
+    compile "osx/osview.m"
+    compile "osx/oswindow.m"
+  elif defined(windows):
+    compile "win/osbutton.c"
+    compile "win/oscombo.c"
+    compile "win/oscomwin.c"
+    compile "win/oscontrol.cpp"
+    compile "win/osdrawctrl.cpp"
+    compile "win/osedit.c"
+    compile "win/osglobals.c"
+    compile "win/osimg.cpp"
+    compile "win/osimglist.c"
+    compile "win/osgui_win.cpp"
+    compile "win/oslabel.c"
+    compile "win/oslistener.c"
+    compile "win/osmenu.c"
+    compile "win/osmenuitem.c"
+    compile "win/ospanel.c"
+    compile "win/ospopup.c"
+    compile "win/osprogress.c"
+    compile "win/osscroll.c"
+    compile "win/osslider.c"
+    compile "win/ossplit.c"
+    compile "win/osstyleXP.c"
+    compile "win/ostext.c"
+    compile "win/ostooltip.c"
+    compile "win/osupdown.c"
+    compile "win/osview.cpp"
+    compile "win/oswindow.c"
+  
+libraryBuilder("osapp"):
+  compile "osapp.c"
+  when defined(linux):
+    compile "gtk3/osapp_gtk.c"
+  elif defined(macosx):
+    compile "osx/osapp_osx.m"
+  elif defined(windows):
+    compile "win/osapp_win.c"
+
+when defined(nappguiInet):
+  libraryBuilder("inet"):
+    compile "base64.c"
+    compile "httpreq.c"
+    compile "inet.c"
+    compile "json.c"
+    compile "url.c"
+    when defined(linux):
+      compile "linux/oshttpreq.c"
+    elif defined(macosx):
+      compile "osx/oshttpreq.m"
+    elif defined(windows):
+      compile "win/oshttpreq.c"
 
 # public C flags
 {. passC: nappguiPublicFlags .}

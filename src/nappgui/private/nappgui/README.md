@@ -8,11 +8,13 @@ from this repository, https://github.com/frang75/nappgui_src.
 
  - Replaced `README.md` with this file
  - Added `include` with all of NAppGUI's public headers
+ - Added precompiled res_gui resource pack to gui library
  - Removed:
    - `prj/`
    - `src/demo/`
    - `src/howto/`
    - `src/**/CMakeLists.txt`
+   - `src/gui/res`
  - Renamed:
    - `src/osbs/win/bsocket.c` -> `src/osbs/win/bsocket_win.c`
    - `src/osbs/unix/bsocket.c` -> `src/osbs/unix/bsocket_unix.c`
