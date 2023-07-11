@@ -20,6 +20,15 @@ syntax is `[nappgui-version].[library-patch]` where:
 
 No versions have been released yet as this library is currently a WIP.
 
+## Dependencies
+
+A vendored copy of NAppGUI is included in this repository so you will only
+need to install NAppGUI's dependencies:
+
+ - Linux: GTK3, OpenGL, Curl (optional)
+ - OSX: None
+ - Windows: None
+
 ## Install
 
 Install nim and nimble, then install using nimble
@@ -27,6 +36,12 @@ Install nim and nimble, then install using nimble
 ```sh
 nimble install "https://github.com/stoneface86/nappgui-nim"
 ```
+
+## Options
+
+By default, the `inet` library is not compiled, as Nim already provides this
+functionality in its standard library. To enable this library, define
+`-d:nappguiInet` when compiling your project.
 
 ## Documentation
 

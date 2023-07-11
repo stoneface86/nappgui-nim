@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.1.0"
+version       = "1.3.1.0"
 author        = "stoneface86"
 description   = "Bindings for nappgui, cross-platform GUI toolkit"
 license       = "MIT"
