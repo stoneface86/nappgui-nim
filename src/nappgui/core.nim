@@ -28,7 +28,7 @@ type
     ## 
   
   Listener*[T: ptr|ref] = object
-    impl: ptr bcore.Listener
+    impl*: ptr bcore.Listener
 
 template toVoidPtr[T: ptr|ref](obj: T): pointer =
   cast[pointer](recv)

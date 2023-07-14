@@ -1,5 +1,7 @@
 
 import units/[
   tbindings,
-  tarray
+  tarray,
+  tdraw2d,
+  tgeom2d
 ]

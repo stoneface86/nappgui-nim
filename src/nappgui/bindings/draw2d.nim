@@ -153,8 +153,8 @@ proc draw_text_align*(ctx: ptr DCtx, halign: align_t, valign: align_t)
 proc draw_text_halign*(ctx: ptr DCtx, halign: align_t)
 proc draw_text_extents*(ctx: ptr DCtx, text: cstring, refwidth: real32_t,
                         width: ptr real32_t, height: ptr real32_t)
-proc draw_image*(ctx: ptr DCtx, x: real32_t, y: real32_t)
-proc draw_image_frame*(ctx: ptr DCtx, frame: uint32_t, x: real32_t, y: real32_t)
+proc draw_image*(ctx: ptr DCtx, img: ptr Image, x: real32_t, y: real32_t)
+proc draw_image_frame*(ctx: ptr DCtx, img: ptr Image, frame: uint32_t, x: real32_t, y: real32_t)
 proc draw_image_align*(ctx: ptr DCtx, halign: align_t, valign: align_t)                        
 
 {. pop .} #====================================================================

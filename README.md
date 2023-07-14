@@ -10,6 +10,11 @@ automatically compiles and links it to your project when this wrapper is used.
 See [libnappgui.nim](src/nappgui/private/libnappgui.nim) for details on how
 this is done.
 
+Note that these bindings do not cover all of NAppGUI. This is due to the fact
+that Nim and the Nim standard library already implement certain parts of
+NAppGUI. Most of the sewer, osbs and inet libraries within NAppGUI are not
+wrapped.
+
 ## Versioning
 
 This library uses semantic versioning that adds an extra patch number. The
