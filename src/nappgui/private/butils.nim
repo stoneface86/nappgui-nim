@@ -1,30 +1,6 @@
 
 import ../bindings/sewer
 
-# macro fdispatch2*[T: SomeFloat](fun32: untyped, fun64: untyped, args: varargs[untyped]) =
-#   let fname = when T is float32: bindsym(fun32) else: bindsym(fun64)
-#   result = quote do:
-#     `fname`(`args`)
-
-
-
-# macro genDestroy*(T: typedesc, destroyFunc) =
-#   result = quote do:
-#     proc `=destroy`*(x: var `T`) =
-#       if x.impl != nil:
-#         `destroy`(x.impl.addr)
-
-# macro genMoveSemantics*(T: typedesc, destroy) =
-#   result = quote do:
-#     proc `=destroy`*(x: var `T`) =
-#       if x.impl != nil:
-#         `destroy`(x.impl.addr)
-#     proc `=copy`*(x: var T, y: T) {.error.}
-#     proc `=sink`*(x: var T, y: T) =
-#       `=destroy`(x)
-#       wasMoved(x)
-#       x.impl = y.impl
-
 template fdispatch*[T: SomeFloat](fun32: untyped, fun64: untyped, args: varargs[untyped]): auto =
   when T is float32:
     fun32(args)

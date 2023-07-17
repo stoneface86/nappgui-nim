@@ -105,8 +105,8 @@ proc dctx_image*(ctx: ptr ptr DCtx): ptr Image
 proc draw_clear*(ctx: ptr DCtx, color: color_t)
 proc draw_matrixf*(ctx: ptr DCtx, t2d: ptr T2Df)
 proc draw_matrixd*(ctx: ptr DCtx, t2d: ptr T2Dd)
-proc draw_matrix_catesianf*(ctx: ptr DCtx, t2d: ptr T2Df)
-proc draw_matrix_catesiand*(ctx: ptr DCtx, t2d: ptr T2Dd)
+proc draw_matrix_cartesianf*(ctx: ptr DCtx, t2d: ptr T2Df)
+proc draw_matrix_cartesiand*(ctx: ptr DCtx, t2d: ptr T2Dd)
 proc draw_antialias*(ctx: ptr DCtx, on: bool_t)
 
 {. pop .} #====================================================================
