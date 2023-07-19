@@ -15,6 +15,19 @@ that Nim and the Nim standard library already implement certain parts of
 NAppGUI. Most of the sewer, osbs and inet libraries within NAppGUI are not
 wrapped.
 
+## Status
+
+| NAppGUI library | Bindings? | API?                 |
+|-----------------|-----------|----------------------|
+| sewer           | partial   | not started          |
+| osbs            | done      | partial (just types) |
+| core            | done      | in progress          |
+| geom2d          | done      | in progress          |
+| draw2d          | done      | done                 |
+| gui             | done      | not started          |
+| osapp           | done      | not started          |
+| inet            | done      | not started          |
+
 ## Versioning
 
 This library uses semantic versioning that adds an extra patch number. The
