@@ -187,8 +187,8 @@ proc r2d_joind*(r2d: ptr R2Dd, src: ptr R2Dd)
 # 2D Transformations
 
 let
-  kT2D_IDENTf* {.nodecl.}: T2Df
-  kT2D_IDENTd* {.nodecl.}: T2Dd
+  kT2D_IDENTf* {.nodecl.}: ptr T2Df
+  kT2D_IDENTd* {.nodecl.}: ptr T2Dd
 
 proc t2d_tof*(dest: ptr T2Df, src: ptr T2Dd)
 proc t2d_movef*(dest: ptr T2Df, src: ptr T2Df, x: real32_t, y: real32_t)

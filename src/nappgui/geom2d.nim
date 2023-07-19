@@ -56,9 +56,6 @@ type
     ## Alias for R2D[float32]
     ##
 
-func underlying[T, F, D](ty: typedesc[GeomObject[T, F, D]]): typedesc {.compileTime.} =
-  when T is float32: typedesc[F] else: typedesc[D]
-
 # ========================================================================= V2D
 
 template x*[T: SomeFloat](v: V2D[T]): T = v.impl.x
@@ -380,7 +377,7 @@ template `p=`*[T: SomeFloat](t: var T2D[T], val: V2D[T]) = t.impl.p = val.impl
 template t2d*[T: SomeFloat](): T2D[T] =
   ## Initializes a transformation matrix with the identity matrix.
   ##
-  T2D[T](impl: when T is float32: kT2D_IDENTf else: kT2D_IDENTd)
+  T2D[T](impl: when T is float32: kT2D_IDENTf[] else: kT2D_IDENTd[])
 
 template t2d*(t: T2D[float32]): T2D[float64] =
   ## Converts a transformation from float32 to float64

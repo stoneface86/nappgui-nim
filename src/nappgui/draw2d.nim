@@ -7,12 +7,16 @@
 ## `NAppGUI Docs<https://nappgui.com/en/sdk/sdk.html>`_
 ##  
 
-import bindings/[core, sewer, geom2d, draw2d]
+import bindings/[core, osbs, sewer, geom2d, draw2d]
 import private/butils
 
 import std/strutils
 
 import geom2d as hgeom2d
+import osbs as hosbs
+
+export FError
+export draw2d_start, draw2d_finish
 
 type
   Pixformat* {.pure.} = enum
@@ -47,21 +51,21 @@ type
     fsSupscript ## Superscript
     fsPoints    ## Use point sizes instead of pixels.
 
-  Linecap* {.pure.} = enum
+  LineCap* {.pure.} = enum
     ## Style when drawing the ends of a line.
     ## 
     flat    ## Flat termination at the last point of the line
     square  ## Termination in a box, whose center is the last point of the line
     round   ## Termination in a circle, whose center is the last point of the line
   
-  Linejoin* {.pure.} = enum
+  LineJoin* {.pure.} = enum
     ## Style when joining lines.
     ## 
     miter   ## Union at an angle. See https://en.wikipedia.org/wiki/Miter_joint
     round   ## Rounded union.
     bevel   ## Beveled union.
   
-  Fillwrap* {.pure.} = enum
+  FillWrap* {.pure.} = enum
     ## Behavior of the fill pattern
     ## 
     clamp   ## Last limit value is used
@@ -148,18 +152,41 @@ type
       ## Implementation. Untraced reference to an NAppGUI Font.
       ##
 
-template toImpl(f: Pixformat): pixformat_t = f.ord.pixformat_t
-template toImpl(c: Linecap): linecap_t = c.ord.linecap_t
-template toImpl(j: Linejoin): linejoin_t = j.ord.linejoin_t
-template toImpl(o: DrawOp): drawop_t = o.ord.drawop_t
-template toImpl(w: Fillwrap): fillwrap_t = w.ord.fillwrap_t
-template toImpl(e: Ellipsis): ellipsis_t = e.ord.ellipsis_t
-template toImpl(a: HAlign|Valign): align_t = a.ord.align_t
-template toImpl(s: set[FontStyle]): uint32 = cast[cint](s).uint32
-template toImpl(c: Codec): codec_t = c.ord.codec_t
+const
+  cTransparent* = Color(0x00000000)
+    ## Color constant for a completely transparent color, or black with an
+    ## alpha value of 0.
+    ##
+  cBlack*       = Color(0xFF000000)
+    ## Color constant for black, #000000.
+    ##
+  cWhite*       = Color(0xFFFFFFFF)
+    ## Color constant for white, #FFFFFF.
+    ##
+  cRed*         = Color(0xFF0000FF)
+    ## Color constant for red, #FF0000.
+    ##
+  cGreen*       = Color(0xFF00FF00)
+    ## Color constant for green, #00FF00.
+    ##
+  cBlue*        = Color(0xFFFF0000)
+    ## Color constant for blue, #0000FF.
+    ##
+  cYellow*      = Color(0xFF00FFFF)
+    ## Color constant for yellow, #FFFF00.
+    ##
+  cCyan*        = Color(0xFFFFFF00)
+    ## Color constant for cyan, #00FFFF.
+    ##
+  cMagenta*     = Color(0xFFFF00FF)
+    ## Color constant for magenta, #FF00FF.
 
-template fromImpl(f: pixformat_t): Pixformat = f.ord.Pixformat
-template fromImpl(c: codec_t): Codec = c.ord.Codec
+template toImpl(s: set[FontStyle]): uint32 =
+  block:
+    {.push warning[CastSizes]:off.}
+    let res = cast[cint](s).uint32
+    {.pop.}
+    res
 
 # ======================================================================== DCtx
 
@@ -176,8 +203,8 @@ proc init*(T: typedesc[DCtx], width: Natural, height: Natural,
            format: Pixformat): DCtx =
   ## Creates a DCtx for drawing to an in-memory pixel buffer. You must call
   ## `toImage` when finished drawing in order to destroy this context.
-  ## 
-  result.impl = dctx_bitmap(width.uint32, height.uint32, format.toImpl)
+  ##
+  result.impl = dctx_bitmap(width.uint32, height.uint32, castEnum(format, pixformat_t))
 
 proc toImage*(ctx: var DCtx): Image =
   ## Gets the resulting image from the context. The context will be destroyed
@@ -210,7 +237,7 @@ template setAntialias*(ctx: var DCtx, antialias: bool) =
 
 # ---
 
-template drawLine*(ctx: var DCtx, x0: float32, x1: float32, y0: float32, y1: float32) =
+template drawLine*(ctx: var DCtx, x0: float32, y0: float32, x1: float32, y1: float32) =
   ## Draw a line using the given coordinates.
   ##
   draw_line(ctx.impl, x0, y0, x1, y1)
@@ -250,15 +277,15 @@ template setLineWidth*(ctx: var DCtx, width: float32) =
   ##
   draw_line_width(ctx.impl, width)
 
-template setLineCap*(ctx: var DCtx, cap: Linecap) =
+template setLineCap*(ctx: var DCtx, cap: LineCap) =
   ## Set the style of line ends.
   ##
-  draw_line_cap(ctx.impl, cap.toImpl)
+  draw_line_cap(ctx.impl, castEnum(cap, linecap_t))
 
-template setLineJoin*(ctx: var DCtx, join: Linejoin) =
+template setLineJoin*(ctx: var DCtx, join: LineJoin) =
   ## Set the style of line junctions.
   ##
-  draw_line_join(ctx.impl, join.toImpl)
+  draw_line_join(ctx.impl, castEnum(join, linejoin_t))
 
 proc setLineDash*(ctx: var DCtx, pattern: openArray[float32]) =
   ## Set a pattern for line drawing.
@@ -267,6 +294,11 @@ proc setLineDash*(ctx: var DCtx, pattern: openArray[float32]) =
     cast[ptr float32](pattern[0].unsafeAddr), 
     pattern.len.uint32_t
   )
+
+template resetLineDash*(ctx: var DCtx) =
+  ## Removes the pattern for line dashes.
+  ##
+  draw_line_dash(ctx.impl, nil, 0)
 
 template setLineFill*(ctx: var DCtx) =
   ## Uses the current fill pattern for line drawing.
@@ -277,30 +309,30 @@ template drawRect*(ctx: var DCtx, op: DrawOp,
                x: float32, y: float32, width: float32, height: float32) =
   ## Draws a rectangle.
   ##
-  draw_rect(ctx.impl, op.toImpl, x, y, width, height)
+  draw_rect(ctx.impl, castEnum(op, drawop_t), x, y, width, height)
 
 template drawRoundedRect*(ctx: var DCtx, op: DrawOp, x: float32, y: float32,
                           width: float32, height: float32, radius: float32) =
   ## Draws a rectangle with rounded corners.
   ##                      
-  draw_rndrect(ctx.impl, op.toImpl, x, y, width, height, radius)
+  draw_rndrect(ctx.impl, castEnum(op, drawop_t), x, y, width, height, radius)
 
 template drawCircle*(ctx: var DCtx, op: DrawOp, x: float32, y: float32,
                      radius: float32) =
   ## Draws a circle.
   ##
-  draw_circle(ctx.impl, op.toImpl, x, y, radius)
+  draw_circle(ctx.impl, castEnum(op, drawop_t), x, y, radius)
 
 template drawEllipse*(ctx: var DCtx, op: DrawOp, x: float32, y: float32,
                       radx: float32, rady: float32) =
   ## Draws an ellipse.
   ##
-  draw_ellipse(ctx.impl, op.toImpl, x, y, radx, rady)
+  draw_ellipse(ctx.impl, castEnum(op, drawop_t), x, y, radx, rady)
 
 template drawPolygon*(ctx: var DCtx, op: DrawOp, points: openArray[PointF]) =
   ## Draws a polygon made up of the given points array.
   ##
-  draw_polygon(ctx.impl, op.toImpl, 
+  draw_polygon(ctx.impl, castEnum(op, drawop_t), 
     cast[ptr V2Df](points[0].unsafeAddr),
     points.len.uint32
   )
@@ -333,7 +365,7 @@ template setFillMatrix*(ctx: var DCtx, mat: MatrixF) =
 template setFillWrap*(ctx: var DCtx, wrap: Fillwrap) =
   ## Sets the behavior of the gradient or fill pattern.
   ##
-  draw_fill_wrap(ctx.impl, wrap.toImpl)
+  draw_fill_wrap(ctx.impl, castEnum(wrap, fillwrap_t))
 
 template setFont*(ctx: var DCtx, font: Font) =
   ## Sets the font for text drawing.
@@ -356,7 +388,7 @@ template drawText*(ctx: var DCtx, op: DrawOp, text: string, x: float32,
   ## you to use gradients, only draw the outline, etc. Keep in mind that this
   ## operation is much less efficient than the the plain drawText overload.
   ##
-  draw_text_path(ctx.impl, op.toImpl, text.cstring, x, y)
+  draw_text_path(ctx.impl, castEnum(op, drawop_t), text.cstring, x, y)
 
 template setTextWidth*(ctx: var DCtx, width: float32) =
   ## Sets the width of the text block for drawing text. If the text to draw
@@ -369,18 +401,18 @@ template setTextTrim*(ctx: var DCtx, ellipsis: Ellipsis) =
   ## Set the trim style for when the text is trimmed when it exceeds the width
   ## of the text block.
   ##
-  draw_text_trim(ctx.impl, ellipsis.toImpl)
+  draw_text_trim(ctx.impl, castEnum(ellipsis, ellipsis_t))
 
 template setTextAlign*(ctx: var DCtx, halign: HAlign, valign: VAlign) =
   ## Sets the alignment of the text with respect to the insertion point.
   ##
-  draw_text_align(ctx.impl, halign.toImpl, valign.toImpl)
+  draw_text_align(ctx.impl, castEnum(halign, align_t), castEnum(valign, align_t))
 
 template setMulitlineTextAlign*(ctx: var DCtx, halign: HAlign) =
   ## Sets the horizontal alignment of text for a multi-line text block. This
   ## setting only applies to multi-line text.
   ##
-  draw_text_halign(ctx.impl, halign.toImpl)
+  draw_text_halign(ctx.impl, castEnum(halign, align_t))
 
 proc getExtents*(ctx: var DCtx, text: string, refwidth: float32): tuple[width: float32, height: float32] =
   ## Gets the size of a block of text. If `refwidth > 0` then the resulting
@@ -406,12 +438,12 @@ template drawImage*(ctx: var DCtx, image: Image, frame: Natural, x: float32, y: 
 template setImageAlign*(ctx: var DCtx, halign: HAlign, valign: VAlign) =
   ## Sets the alignments used when drawing images.
   ##
-  draw_image_align(ctx.impl, halign.toImpl, valign.toImpl)
+  draw_image_align(ctx.impl, castEnum(halign, align_t), castEnum(valign, align_t))
 
 template drawV2d*[T: SomeFloat](ctx: var DCtx, op: DrawOp, v2d: V2D[T], radius: float32) =
   ## Draws a point representing the given vector.
   ##
-  fdispatch[T](draw_v2df, draw_v2dd, ctx.impl, op.toImpl, v2d.unsafeAddr, radius)
+  fdispatch[T](draw_v2df, draw_v2dd, ctx.impl, castEnum(op, drawop_t), v2d.unsafeAddr, radius)
 
 template drawSeg2d*[T: SomeFloat](ctx: var DCtx, seg: Seg2D[T]) =
   ## Draws a line segment.
@@ -421,27 +453,27 @@ template drawSeg2d*[T: SomeFloat](ctx: var DCtx, seg: Seg2D[T]) =
 template drawCir2d*[T: SomeFloat](ctx: var DCtx, op: DrawOp, cir: Cir2D[T]) =
   ## Draws a circle.
   ##
-  fdispatch[T](draw_cir2df, draw_cir2dd, ctx.impl, op.toImpl, cir.unsafeAddr)
+  fdispatch[T](draw_cir2df, draw_cir2dd, ctx.impl, castEnum(op, drawop_t), cir.unsafeAddr)
 
 template drawBox2d*[T: SomeFloat](ctx: var DCtx, op: DrawOp, box: Box2D[T]) =
   ## Draws a box.
   ##
-  fdispatch[T](draw_box2df, draw_box2dd, ctx.impl, op.toImpl, box.unsafeAddr)
+  fdispatch[T](draw_box2df, draw_box2dd, ctx.impl, castEnum(op, drawop_t), box.unsafeAddr)
 
 template drawObb2d*[T: SomeFloat](ctx: var DCtx, op: DrawOp, obb: OBB2D[T]) =
   ## Draws an oriented box.
   ##
-  fdispatch[T](draw_obb2df, draw_obb2dd, ctx.impl, op.toImpl, obb.unsafeAddr)
+  fdispatch[T](draw_obb2df, draw_obb2dd, ctx.impl, castEnum(op, drawop_t), obb.unsafeAddr)
 
 template drawTri2d*[T: SomeFloat](ctx: var DCtx, op: DrawOp, tri: Tri2D[T]) =
   ## Draws a triangle.
   ##
-  fdispatch[T](draw_tri2df, draw_tri2dd, ctx.impl, op.toImpl, tri.unsafeAddr)
+  fdispatch[T](draw_tri2df, draw_tri2dd, ctx.impl, castEnum(op, drawop_t), tri.unsafeAddr)
 
 template drawPol2d*[T: SomeFloat](ctx: var DCtx, op: DrawOp, pol: Pol2D[T]) =
   ## Draws a polygon.
   ## 
-  fdispatch[T](draw_pol2df, draw_pol2dd, ctx.impl, op.toImpl, pol.unsafeAddr)
+  fdispatch[T](draw_pol2df, draw_pol2dd, ctx.impl, castEnum(op, drawop_t), pol.unsafeAddr)
 
 # ======================================================================= Color
 
@@ -649,7 +681,7 @@ proc init*(T: typedesc[Pixbuf], width: Natural, height: Natural,
            format = Pixformat.rgba32): Pixbuf =
   ## Creates a Pixbuf with the given width, height and pixel format.
   ##
-  result.impl = pixbuf_create(width.uint32, height.uint32, format.toImpl)
+  result.impl = pixbuf_create(width.uint32, height.uint32, castEnum(format, pixformat_t))
 
 proc init*(T: typedesc[Pixbuf], pixbuf: Pixbuf, x: Natural, y: Natural,
            width: Natural, height: Natural): Pixbuf =
@@ -663,12 +695,12 @@ proc init*(T: typedesc[Pixbuf], pixbuf: Pixbuf, palette: Palette, format: Pixfor
   ## Converts a pixbuf to another format. Depending on the format of `pixbuf`
   ## and the destination format, loss of information is possible.
   ##
-  result.impl = pixbuf_convert(pixbuf.impl, palette.impl, format.toImpl)
+  result.impl = pixbuf_convert(pixbuf.impl, palette.impl, castEnum(format, pixformat_t))
 
 template format*(pixbuf: Pixbuf): Pixformat =
   ## Get the format of the pixbuf.
   ##
-  pixbuf_format(pixbuf.impl).fromImpl
+  castEnum(pixbuf_format(pixbuf.impl), Pixformat)
 
 template width*(pixbuf: Pixbuf): int =
   ## Get the width, in pixels, of the pixbuf.
@@ -693,7 +725,7 @@ template dataSize*(pixbuf: Pixbuf): int =
 template bpp*(format: Pixformat): int =
   ## Get the number of bytes per pixel (bpp) for a given Pixformat.
   ##
-  pixbuf_format_bpp(format.toImpl).int
+  pixbuf_format_bpp(castEnum(format, pixformat_t)).int
 
 template data*(pixbuf: var Pixbuf): ptr UncheckedArray[byte] =
   ## Gets an untraced reference to the pixel buffer, as a byte array.
@@ -730,7 +762,7 @@ proc init*(T: typedesc[Image], width: Natural, height: Natural,
   ## correct, or equal to `width * height * bpp(format)`
   ##
   result.impl = image_from_pixels(
-    width.uint32, height.uint32, format.toImpl,
+    width.uint32, height.uint32, castEnum(format, pixformat_t),
     data[0].unsafeAddr, nil, 0
   )
 
@@ -741,7 +773,7 @@ proc init*(T: typedesc[Image], width: Natural, height: Natural,
   ## Creates an image from a pixel buffer and color palette.
   ##
   result.impl = image_from_pixels(
-    width.uint32, height.uint32, format.toImpl,
+    width.uint32, height.uint32, castEnum(format, pixformat_t),
     data[0].unsafeAddr, palette[0].unsafeAddr, palette.len.uint32
   )
 
@@ -750,10 +782,12 @@ proc init*(T: typedesc[Image], pixbuf: Pixbuf, palette = Palette()): Image =
   ##
   result.impl = image_from_pixbuf(pixbuf.impl, palette.impl)
 
-proc init*(T: typedesc[Image], pathname: string): Image =
+proc init*(T: typedesc[Image], pathname: string): tuple[image: Image, error: FError] =
   ## Loads an image from a file.
   ##
-  result.impl = image_from_file(pathname.cstring, nil)
+  var err = ekFOK
+  result.image.impl = image_from_file(pathname.cstring, err.addr)
+  result.error = castEnum(err, FError)
 
 proc init*(T: typedesc[Image], image: Image, x: Natural, y: Natural,
            width: Natural, height: Natural): Image =
@@ -785,15 +819,18 @@ proc init*(T: typedesc[Image], image: Image, nwidth: Natural, nheight: Natural):
   ##
   result.impl = image_scale(image.impl, nwidth.uint32, nheight.uint32)
 
-template toFile*(image: Image, pathname: string): bool =
+template toFile*(image: Image, pathname: string): FError =
   ## Saves an image to a file.
   ##
-  image_to_file(image.impl, pathname.cstring, nil).toBool
+  block:
+    var res: ferror_t
+    discard image_to_file(image.impl, pathname.cstring, res.addr)
+    castEnum(res, FError)
 
 template format*(image: Image): Pixformat =
   ## Gets the pixel format of the image.
   ##
-  image_format(image.impl).fromImpl
+  castEnum(image_format(image.impl), Pixformat)
 
 template width*(image: Image): int =
   ## Gets the width of the image.
@@ -813,13 +850,13 @@ template pixels*(image: Image): Pixbuf =
 template codec*(image: Image): Codec =
   ## Gets the image codec associated with the image.
   ##
-  image_get_codec(image.impl).fromImpl
+  castEnum(image_get_codec(image.impl), Codec)
 
 template setCodec*(image: var Image, val: Codec): bool =
   ## Sets the image codec. `true` is returned on success. This can fail when
   ## setting the codec to `Codec.gif` on certain versions of Linux.
   ##
-  image_codec(image.impl, val.toImpl).toBool
+  image_codec(image.impl, castEnum(val, codec_t)).toBool
 
 template frames*(image: Image): int =
   ## Get the number of frames or subimages an Image has. Only images with the

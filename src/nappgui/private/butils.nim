@@ -18,3 +18,10 @@ template getPtr*[T](x: T): ptr T =
 
 template toBool*(b: bool_t): bool =
   b == TRUE
+
+template castEnum*[E: enum](src: E, D: typedesc[enum]): D =
+  block:
+    static:
+      assert E.low.ord == D.low.ord
+      assert E.high.ord == D.high.ord
+    D(src.ord)

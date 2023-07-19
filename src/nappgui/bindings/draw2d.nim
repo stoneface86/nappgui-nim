@@ -96,6 +96,12 @@ type
   Font* {.importc.}     = object
 
 {. pop .} #====================================================================
+{. push importc, noconv, header: "nappgui/draw2d/draw2d.h" .}
+
+proc draw2d_start*()
+proc draw2d_finish*()
+
+{. pop .} #====================================================================
 {. push importc, noconv, header: "nappgui/draw2d/dctx.h" .}
 
 # 2D Contexts
