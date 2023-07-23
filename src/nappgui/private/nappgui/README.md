@@ -7,8 +7,12 @@ from this repository, https://github.com/frang75/nappgui_src.
 ## Modifications
 
  - Replaced `README.md` with this file
- - Added `include` with all of NAppGUI's public headers
- - Added precompiled res_gui resource pack to gui library
+ - Added: 
+   - `include` with all of NAppGUI's public headers
+   - precompiled res_gui resource pack to gui library
+   - `nappgui.nim`
+   - `config.nims`
+   - `windows-defines.h`
  - Removed:
    - `prj/`
    - `src/demo/`
@@ -22,6 +26,10 @@ from this repository, https://github.com/frang75/nappgui_src.
    - `src/osbs/osx/sinfo.c` -> `src/osbs/win/bsinfo_osx.c`
    - `src/osbs/linux/sinfo.c` -> `src/osbs/linux/bsinfo_linux.c`
    - `src/osbs/unix/sinfo.c` -> `src/osbs/win/bsinfo_unix.c`
+
+Some C source files were renamed since on older versions of nim, the compiled
+object file from a `compile` macro uses the same name as the source file and
+does not take into account its path, so collisions are possible.
 
 ## Source info
 

@@ -1,0 +1,5 @@
+switch "app",     "staticLib"
+switch "noMain",  "on"
+switch "d",       "release"
+switch "opt",     "size"
+switch "mm",      "none"
