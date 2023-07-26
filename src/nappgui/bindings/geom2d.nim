@@ -10,73 +10,73 @@ import sewer, core
 {. push header: "nappgui/geom2d/geom2d.hxx" .} #======================
 
 type
-  V2Df* {.importc.} = object
+  V2Df* {.importc, completeStruct.} = object
     x*: real32_t
     y*: real32_t
   
-  V2Dd* {.importc.} = object
+  V2Dd* {.importc, completeStruct.} = object
     x*: real64_t
     y*: real64_t
   
-  S2Df* {.importc.} = object
+  S2Df* {.importc, completeStruct.} = object
     width*: real32_t
     height*: real32_t
   
-  S2Dd* {.importc.} = object
+  S2Dd* {.importc, completeStruct.} = object
     width*: real64_t
     height*: real64_t
 
-  R2Df* {.importc.} = object
+  R2Df* {.importc, completeStruct.} = object
     pos*: V2Df
     size*: S2Df
   
-  R2Dd* {.importc.} = object
+  R2Dd* {.importc, completeStruct.} = object
     pos*: V2Dd
     size*: S2Dd
   
-  T2Df* {.importc.} = object
+  T2Df* {.importc, completeStruct.} = object
     i*: V2Df
     j*: V2Df
     p*: V2Df
 
-  T2Dd* {.importc.} = object
+  T2Dd* {.importc, completeStruct.} = object
     i*: V2Dd
     j*: V2Dd
     p*: V2Dd
 
-  Seg2Df* {.importc.} = object
+  Seg2Df* {.importc, completeStruct.} = object
     p0*: V2Df
     p1*: V2Df
   
-  Seg2Dd* {.importc.} = object
+  Seg2Dd* {.importc, completeStruct.} = object
     p0*: V2Dd
     p1*: V2Dd
   
-  Cir2Df* {.importc.} = object
+  Cir2Df* {.importc, completeStruct.} = object
     c*: V2Df
     r*: real32_t
   
-  Cir2Dd* {.importc.} = object
+  Cir2Dd* {.importc, completeStruct.} = object
     c*: V2Dd
     r*: real64_t
   
-  Box2Df* {.importc.} = object
+  Box2Df* {.importc, completeStruct.} = object
     min*: V2Df
     max*: V2Df
   
-  Box2Dd* {.importc.} = object
+  Box2Dd* {.importc, completeStruct.} = object
     min*: V2Dd
     max*: V2Dd
   
   OBB2Df* {.importc.} = object
   OBB2Dd* {.importc.} = object
   
-  Tri2Df* {.importc.} = object
+  Tri2Df* {.importc, completeStruct.} = object
     p0*: V2Df
     p1*: V2Df
     p2*: V2Df
   
-  Tri2Dd* {.importc.} = object
+  Tri2Dd* {.importc, completeStruct.} = object
     p0*: V2Dd
     p1*: V2Dd
     p2*: V2Dd
@@ -84,8 +84,16 @@ type
   Pol2Df* {.importc.} = object
   Pol2Dd* {.importc.} = object
 
-  Col2Df* {.importc.} = object
-  Col2Dd* {.importc.} = object
+  Col2Df* {.importc, completeStruct.} = object
+    p*: V2Df
+    n*: V2Df
+    d*: real32_t
+
+  Col2Dd* {.importc, completeStruct.} = object
+    p*: V2Dd
+    n*: V2Dd
+    d*: real64_t
+    
 
 {. pop .} # ===================================================================
 {. push importc, noconv, header: "nappgui/geom2d/v2d.h" .}
@@ -174,7 +182,7 @@ proc r2d_clipf*(viewport: ptr R2Df, r2d: ptr R2Df): bool_t
 proc r2d_joinf*(r2d: ptr R2Df, src: ptr R2Df)
 
 proc r2dd*(x: real64_t, y: real64_t, width: real64_t, height: real64_t): R2Dd
-proc r2d_centerd*(r2d: ptr R2Dd): V2Df
+proc r2d_centerd*(r2d: ptr R2Dd): V2Dd
 proc r2d_collided*(r2d1: ptr R2Dd, r2d2: ptr R2Dd): bool_t
 proc r2d_containsd*(r2d1: ptr R2Dd, x: real64_t, y: real64_t): bool_t
 proc r2d_clipd*(viewport: ptr R2Dd, r2d: ptr R2Dd): bool_t
@@ -202,7 +210,7 @@ proc t2d_vmultnf*(dest: ptr T2Df, t2d: ptr T2Df,  v2d: ptr V2Df, n: uint32_t)
 proc t2d_decomposef*(td2: ptr T2Df, pos: ptr V2Df, angle: ptr real32_t,
                      sc: ptr V2Df)
 
-proc t2d_tod*(dest: ptr T2Dd, src: ptr T2Dd)
+proc t2d_tod*(dest: ptr T2Dd, src: ptr T2Df)
 proc t2d_moved*(dest: ptr T2Dd, src: ptr T2Dd, x: real64_t, y: real64_t)
 proc t2d_rotated*(dest: ptr T2Dd, src: ptr T2Dd, angle: real64_t)
 proc t2d_scaled*(dest: ptr T2Dd, src: ptr T2Dd, sx: real64_t, sy: real64_t)
