@@ -205,8 +205,8 @@ proc t2d_scalef*(dest: ptr T2Df, src: ptr T2Df, sx: real32_t, sy: real32_t)
 proc t2d_invfastf*(dest: ptr T2Df, src: ptr T2Df)
 proc t2d_inversef*(dest: ptr T2Df, src: ptr T2Df)
 proc t2d_multf*(dest: ptr T2Df, src1: ptr T2Df,  src2: ptr T2Df)
-proc t2d_vmultf*(dest: ptr T2Df, t2d: ptr T2Df,  v2d: ptr V2Df)
-proc t2d_vmultnf*(dest: ptr T2Df, t2d: ptr T2Df,  v2d: ptr V2Df, n: uint32_t)
+proc t2d_vmultf*(dest: ptr V2Df, t2d: ptr T2Df,  v2d: ptr V2Df)
+proc t2d_vmultnf*(dest: ptr V2Df, t2d: ptr T2Df,  v2d: ptr V2Df, n: uint32_t)
 proc t2d_decomposef*(td2: ptr T2Df, pos: ptr V2Df, angle: ptr real32_t,
                      sc: ptr V2Df)
 
@@ -217,8 +217,8 @@ proc t2d_scaled*(dest: ptr T2Dd, src: ptr T2Dd, sx: real64_t, sy: real64_t)
 proc t2d_invfastd*(dest: ptr T2Dd, src: ptr T2Dd)
 proc t2d_inversed*(dest: ptr T2Dd, src: ptr T2Dd)
 proc t2d_multd*(dest: ptr T2Dd, src1: ptr T2Dd,  src2: ptr T2Dd)
-proc t2d_vmultd*(dest: ptr T2Dd, t2d: ptr T2Dd,  v2d: ptr V2Dd)
-proc t2d_vmultnd*(dest: ptr T2Dd, t2d: ptr T2Dd,  v2d: ptr V2Dd, n: uint32_t)
+proc t2d_vmultd*(dest: ptr V2Dd, t2d: ptr T2Dd,  v2d: ptr V2Dd)
+proc t2d_vmultnd*(dest: ptr V2Dd, t2d: ptr T2Dd,  v2d: ptr V2Dd, n: uint32_t)
 proc t2d_decomposed*(td2: ptr T2Dd, pos: ptr V2Dd, angle: ptr real64_t,
                      sc: ptr V2Dd)
 

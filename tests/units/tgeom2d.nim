@@ -305,31 +305,85 @@ test "R2D.join":
 # ========================================================================= T2D
 
 test "T2D.`$`":
-  skip()
+  check $Identity == "t2d(v2d(1.0, 0.0), v2d(0.0, 1.0), v2d(0.0, 0.0))"
 
 test "T2D.t2d":
-  skip()
+  check:
+    Identity == t2d(IdentityF)
+    IdentityF == t2d(Identity)
+  let t = t2d(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
+  check:
+    t.i.x == 1.0
+    t.i.y == 2.0
+    t.j.x == 3.0
+    t.j.y == 4.0
+    t.p.x == 5.0
+    t.p.y == 6.0
 
 test "T2D.move":
-  skip()
+  var t = Identity
+  t.move(2.0, 3.0)
+  check t.p == v2d(2.0, 3.0)
 
 test "T2D.rotate":
-  skip()
+  var t = IdentityF
+  t.rotate(1.0f)
+  check t != IdentityF
 
 test "T2D.scale":
-  skip()
+  var t = Identity
+  t.scale(2.0, 2.0)
+  check:
+    t.i.x == 2.0
+    t.j.y == 2.0
 
 test "T2D.invfast":
-  skip()
+  var 
+    t = Identity
+    tinv: t.typeOf
+  t.move(1.5, 2.25)
+  t.rotate(3)
+  tinv.invfast(t)
+  # t * tinv should be equal to Identity
 
 test "T2D.inverse":
-  skip()
+  var 
+    t = Identity
+    tinv: t.typeOf
+  t.move(1.5, 2.25)
+  t.rotate(3)
+  t.scale(1.25, 3.0)
+  tinv.inverse(t)
+  # t * tinv should be approx. equal to Identity
 
-test "T2D.mult":
-  skip()
+test "T2D.multMatrix":
+  var t = IdentityF
+  t.move(1.0f, 0.0f)
+  t.rotate(-2)
+  check:
+    t * IdentityF == t
+
+test "T2D.multVector":
+  var t = Identity
+  t.move(1.0, 1.0)
+  t.scale(2.0, 1.0)
+  let v = t * v2d(1.0, 1.0)
+  check:
+    v.x == 3.0
+    v.y == 2.0
 
 test "T2D.decompose":
-  skip()
+  var t = t2d[float64]()
+  t.move(-1.0, 5.0)
+  t.scale(1.5, 1.0)
+  t.rotate(-3.0)
+  let decomp = t.decompose()
+  check:
+    decomp.pos.x in   -1.1 .. -0.9
+    decomp.pos.y in    4.9 ..  5.1
+    decomp.angle in   -3.1 .. -2.9
+    decomp.scale.x in  1.4 ..  1.6
+    decomp.scale.y in  0.9 ..  1.1
 
 # ======================================================================= Seg2D
 

@@ -496,6 +496,17 @@ template join*[T: SomeFloat](r: var R2D[T], src: R2D[T]) =
 
 # ========================================================================= T2D
 
+func mkIdentity(T: typedesc[SomeFloat]): T2D[T] =
+  T2D[T]( i: v2d(T(1), T(0)), j: v2d(T(0), T(1)), p: default(V2D[T]) )
+
+const
+  IdentityF* = mkIdentity(float32)
+    ## Identity matrix with 32-bit floats
+    ##
+  Identity* = mkIdentity(float64)
+    ## Identity matrix with 64-bit floats
+    ##
+
 template fromNag*(x: T2Df|T2Dd): auto = cast[T2D[fget[T2Df, T2Dd](x)]](x)
   ## Convert **from** an NAppGUI T2D to a Nim one
   ##
@@ -509,12 +520,18 @@ template toNag[T: SomeFloat](x: ptr T2D[T]): auto = fcast[T](x, ptr T2Df, ptr T2
 func `$`*[T: SomeFloat](t: T2D[T]): string =
   ## Get a string representation of a transformation matrix.
   ##
-  &"t2d({t.i}, {t.j}, {t.pos})"
+  &"t2d({t.i}, {t.j}, {t.p})"
+
+template t2d*[T: SomeFloat](ix: T, iy: T, jx: T, jy: T, px: T, py: T): T2D[T] =
+  ## Initializes a transformation matrix with the given components of the
+  ## matrix.
+  ##
+  T2D[T](i: v2d(ix, iy), j: v2d(jx, jy), p: v2d(px, py))
 
 template t2d*[T: SomeFloat](): T2D[T] =
   ## Initializes a transformation matrix with the identity matrix.
   ##
-  T2D[T]( i: v2d(T(1), T(0)), j: v2d(T(0), T(1)), pos: default(V2D[T]) )
+  when T is float32: IdentityF else: Identity
 
 func t2d*(t: T2D[float32]): T2D[float64] =
   ## Converts a transformation from float32 to float64
@@ -529,7 +546,7 @@ func t2d*(t: T2D[float64]): T2D[float32] =
 template move*[T: SomeFloat](t: var T2D[T], src: T2D[T], x: T, y: T) =
   ## Multiply a transformation by a translation operation
   ##
-  fdispatch[T](t2d_movef, t2d_moved, t.toNag.addr, src.toNag.getPtr, x, y)
+  fdispatch[T](t2d_movef, t2d_moved, toNag(addr(t)), src.toNag.getPtr, x, y)
 
 template move*[T: SomeFloat](t: var T2D[T], x: T, y: T) =
   ## Translates `t` by `x` and `y`.
@@ -549,7 +566,7 @@ template rotate*[T: SomeFloat](t: var T2D[T], angle: T) =
 template scale*[T: SomeFloat](t: var T2D[T], src: T2D[T], sx: T, sy: T) =
   ## Multiply the transformation by a scale operation
   ##
-  fdispatch[T](t2d_scalef, t2d_scaled, t.toNag.addr, src.toNag.getPtr, sx, sy)
+  fdispatch[T](t2d_scalef, t2d_scaled, toNag(addr(t)), src.toNag.getPtr, sx, sy)
 
 template scale*[T: SomeFloat](t: var T2D[T], sx: T, sy: T) =
   ## Transforms `t` by scaling it by `sx` and `sy`.
@@ -558,14 +575,15 @@ template scale*[T: SomeFloat](t: var T2D[T], sx: T, sy: T) =
 
 template invfast*[T: SomeFloat](t: var T2D[T], src: T2D[T]) =
   ## Calculate the inverse transformation efficiently, assuming the input is
-  ## orthogonal (only rotations and translations).
+  ## orthogonal (only rotations and translations). The inverted transformation
+  ## of `src` is stored into `t`.
   ##
-  fdispatch[T](t2d_invfastf, t2d_invfastd, t.impl.addr, src.impl.getPtr)
+  fdispatch[T](t2d_invfastf, t2d_invfastd, toNag(addr(t)), getPtr(toNag(src)))
 
 template invfast*[T: SomeFloat](t: var T2D[T]) =
   ## Invert `t` efficiently. 
   ## 
-  ## Note:: `t` must be orthogonal!
+  ## .. note:: `t` must be orthogonal!
   ##
   invfast[T](t, t)
 
@@ -574,7 +592,7 @@ template inverse*[T: SomeFloat](t: var T2D[T], src: T2D[T]) =
   ## matrix that when multiplied by its original matrix, yields the identity
   ## matrix.
   ##
-  fdispatch[T](t2d_inversef, t2d_inversed, t.impl.addr, src.impl.getPtr)
+  fdispatch[T](t2d_inversef, t2d_inversed, toNag(addr(t)), getPtr(toNag(src)))
 
 template inverse*[T: SomeFloat](t: var T2D[T]) =
   ## Invert `t`.
@@ -582,17 +600,32 @@ template inverse*[T: SomeFloat](t: var T2D[T]) =
   inverse[T](t, t)
 
 template mult*[T: SomeFloat](t: var T2D[T], src1: T2D[T], src2: T2D[T]) =
-  ## Multiple two transformations storing the result in `t`
+  ## Multiply two transformations storing the result in `t`. Multiplying two
+  ## transformations combines them into one transformation (composition).
   ##
-  fdispatch[T](t2d_multf, t2d_multd, t.impl.addr, src1.impl.getPtr, src2.impl.getPtr)
+  fdispatch[T](t2d_multf, t2d_multd, toNag(addr(t)), getPtr(toNag(src1)), getPtr(toNag(src2)))
 
 template mult*[T: SomeFloat](dest: var T2D[T], src: T2D[T]) =
+  ## Multiplies `dest` by `src`, storing the result into `dest`.
+  ##
   mult[T](dest, dest, src)
 
 template mult*[T: SomeFloat](v: var V2D[T], t: T2D[T], src: V2D[T]) =
   ## Transform a vector `src` using `t`, storing the result into `v`.
   ##
-  fdispatch[T](t2d_vmultf, t2d_vmultd, v.impl.addr, t.impl.getPtr, t.impl.getPtr)
+  fdispatch[T](t2d_vmultf, t2d_vmultd, toNag(addr(v)), getPtr(toNag(t)), getPtr(toNag(src)))
+
+proc `*`*[T: SomeFloat](src1: T2D[T], src2: T2D[T]): T2D[T] =
+  ## `*` overload for multiplying two transformations. The result is a
+  ## transformation composed of `src1` and `src2`.
+  ##
+  mult[T](result, src1, src2)
+
+proc `*`*[T: SomeFloat](t: T2D[T], src: V2D[T]): V2D[T] =
+  ## `*` overload for applying a transformation `t`, to a vector `src`. The
+  ## result is the transformed vector.
+  ##
+  mult[T](result, t, src)
 
 proc decompose*[T: SomeFloat](t: T2D[T]): tuple[pos: V2D[T], angle: T, scale: V2D[T]] =
   ## Decompose the transformation into a position vector, angle and scale
@@ -600,10 +633,10 @@ proc decompose*[T: SomeFloat](t: T2D[T]): tuple[pos: V2D[T], angle: T, scale: V2
   ## translations, rotations and scales.
   ##
   fdispatch[T](t2d_decomposef, t2d_decomposed, 
-    t.impl.getPtr, 
-    result.pos.impl.addr,
-    result.angle.addr,
-    result.scale.impl.addr
+    getPtr(toNag(t)),
+    toNag(addr(result.pos)),
+    addr(result.angle),
+    toNag(addr(result.scale))
   )
 
 # ======================================================================= Seg2D
