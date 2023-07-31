@@ -4,6 +4,12 @@
 import std/os
 import nappgui/nappgui
 
+template trace(msg: string) =
+  when defined(nappguiTrace):
+    static:
+      echo "[NAPPGUI] ", msg
+
+
 const
   thisDir = currentSourcePath().parentDir()
   config = block:
@@ -27,6 +33,16 @@ const
 
   nimExe = getCurrentCompilerExe()
 
+  # The built static library will be located at
+  # Linux/MacOSX:   <projectRoot>/bin/nappgui/<config>/libnappgui.a
+  # Windows:        <projectRoot>/bin/nappgui/<config>/nappgui.lib
+  libnappgui = binDir / (
+    when defined(windows):
+      "nappgui.lib"
+    else:
+      "libnappgui.a"
+  )
+
 # Build the nappgui library as a separate nim process
 # this way the library only needs to built once for each config
 # nappguiVersionStr is used as the cache, so it will only be rebuilt if
@@ -34,6 +50,9 @@ const
 # option is specified.
 
 checkCompiler()
+
+const traceMsgPrefix = "Building " & libnappgui
+trace traceMsgPrefix
 
 const nappguiBuildResult = gorgeEx(
   quoteShellCommand([
@@ -43,23 +62,16 @@ const nappguiBuildResult = gorgeEx(
     projFile
   ]), "", nappguiVersionStr
 )
-when nappguiBuildResult.exitCode != 0:
+when nappguiBuildResult.exitCode == 0:
+  trace traceMsgPrefix & ": DONE"
+else:
+  trace traceMsgPrefix & ": FAILED"
   static: 
     echo "===== [NAPPGUI] Build output start =========="
     echo nappguiBuildResult.output
     echo "===== [NAPPGUI] Build output end   =========="
   {. error: "Failed to build nappgui library." .}
 
-# The built static library will be located at
-# Linux/MacOSX:   <projectRoot>/bin/nappgui/<config>/libnappgui.a
-# Windows:        <projectRoot>/bin/nappgui/<config>/nappgui.lib
-
-const libnappgui = binDir / (
-  when defined(windows):
-    "nappgui.lib"
-  else:
-    "libnappgui.a"
-)
 
 {. passL: libnappgui .}
 useNappguiLib(config)

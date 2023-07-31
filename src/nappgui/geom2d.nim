@@ -120,14 +120,8 @@ type
     p2*: V2D[T]
       ## The position of the third vertex.
       ##
-  
-  Switch[T: SomeFloat, F, D] = object
-    when T is float32:
-      impl*: F
-    else:
-      impl*: D
 
-  Obb2D*[T: SomeFloat] {.borrow: `.`.} = distinct Switch[T, ptr OBB2Df, ptr OBB2Dd]
+  Obb2D*[T: SomeFloat] = object
     ## 2D Oriented box. A bounding box that can rotate about its center.
     ## Provides a better "fit" for collision detection of objects that rotate,
     ## at a cost of being more complicated than typical bounding boxes.
@@ -138,8 +132,12 @@ type
     ## This object is copyable. This object contains a reference that is
     ## managed/owned by NAppGUI and is automatically destroyed.
     ##
+    when T is float32:
+      impl*: ptr Obb2Df
+    else:
+      impl*: ptr Obb2Dd
   
-  Pol2D*[T: SomeFloat] {.borrow: `.`.} = distinct Switch[T, ptr Pol2Df, ptr Pol2Dd]
+  Pol2D*[T: SomeFloat] = object
     ## 2D Polygon. A versatile figure that is defined by several line segments
     ## that do not intersect each other, also known as simple polygons.
     ## 
@@ -149,6 +147,10 @@ type
     ## This object is copyable. This object contains a reference that is
     ## managed/owned by NAppGUI and is automatically destroyed.
     ##
+    when T is float32:
+      impl*: ptr Pol2Df
+    else:
+      impl*: ptr Pol2Dd
   
   Col2D*[T: SomeFloat] = object
     ## 2D Collision. Contains data about a collision.
@@ -215,15 +217,15 @@ proc `$`*[T: SomeFloat](v: V2D[T]): string =
   ##
   &"v2d({v.x}, {v.y})"
 
-template v2d*[T: SomeFloat](valx: T, valy: T): V2D[T] =
+template v2d*[T: SomeFloat](valx, valy: T;): V2D[T] =
   ## Create a vector with components x and y.
   ## 
   V2D[T](x: valx, y: valy)
-template point*[T: SomeFloat](x: T, y: T): V2D[T] = v2d[T](x, y)
+template point*[T: SomeFloat](x, y: T;): V2D[T] = v2d[T](x, y)
   ## Alias for v2d
   ##
 
-template v2d*[T: SomeFloat](point: V2D[T], dir: V2D[T], len: T): V2D[T] =
+template v2d*[T: SomeFloat](point, dir: V2D[T]; len: T): V2D[T] =
   ## Create a vector from a point and direction.
   ## 
   fromNag fdispatch[T](v2d_fromf, v2d_fromd, point.toNag.getPtr, dir.toNag.getPtr, len)
@@ -243,13 +245,13 @@ template v2d*(v: V2D[float64]): V2D[float32] =
   ##
   fromNag v2d_tof(v.toNag.toPtr)
 
-template `+`*[T: SomeFloat](a: V2D[T], b: V2D[T]): V2D[T] =
+template `+`*[T: SomeFloat](a, b: V2D[T];): V2D[T] =
   ## Adds two vectors. The resulting vector has its components being the
   ## sum of `a` and `b`'s components.
   ## 
   fromNag fdispatch[T](v2d_addf, v2d_addd, a.toNag.getPtr, b.toNag.getPtr)
 
-template `-`*[T: SomeFloat](a: V2D[T], b: V2D[T]): V2D[T] =
+template `-`*[T: SomeFloat](a, b: V2D[T];): V2D[T] =
   ## Subtract two vectors.
   ## 
   fromNag fdispatch[T](v2d_subf, v2d_subd, a.toNag.getPtr, b.toNag.getPtr)
@@ -259,39 +261,39 @@ template `*`*[T: SomeFloat](a: V2D[T], s: T): V2D[T] =
   ##
   fromNag fdispatch[T](v2d_mulf, v2d_muld, a.toNag.getPtr, s)
 
-template `*`*[T: SomeFloat](a: V2D[T], b: V2D[T]): T =
+template `*`*[T: SomeFloat](a, b: V2D[T];): T =
   ## Calculate the product of two vectors.
   ##
   fdispatch[T](v2d_dotf, v2d_dotd, a.toNag.getPtr, b.toNag.getPtr)
 
-template mid*[T: SomeFloat](a: V2D[T], b: V2D[T]): V2D[T] =
+template mid*[T: SomeFloat](a, b: V2D[T];): V2D[T] =
   ## Get the midpoint of two points `a` and `b`.
   ##
   fromNag fdispatch[T](v2d_midf, v2d_midd, a.toNag.getPtr, b.toNag.getPtr)
 
-template unitImpl[T: SomeFloat](v1: V2D[T], v2: V2D[T], dist: ptr T): V2D[T] =
+template unitImpl[T: SomeFloat](v1, v2: V2D[T]; dist: ptr T): V2D[T] =
   fromNag fdispatch[T](v2d_unitf, v2d_unitd, v1.toNag.getPtr, v2.toNag.getPtr, dist)
 
-template unitImpl[T: SomeFloat](x1: T, y1: T, x2: T, y2: T, dist: ptr T): V2D[T] =
+template unitImpl[T: SomeFloat](x1, y1, x2, y2: T; dist: ptr T): V2D[T] =
   fromNag fdispatch[T](v2d_unit_xyf, v2d_unit_xyd, x1, y1, x2, y2, dist)
 
-template unit*[T: SomeFloat](v1: V2D[T], v2: V2D[T]): V2D[T] =
+template unit*[T: SomeFloat](v1, v2: V2D[T];): V2D[T] =
   ## Calculate the unit vector from vectors `v1` and `v2`.
   ## 
   unitImpl[T](v1, v2, nil)
 
-template unit*[T: SomeFloat](v1: V2D[T], v2: V2D[T], dist: var T): V2D[T] =
+template unit*[T: SomeFloat](v1, v2: V2D[T]; dist: var T): V2D[T] =
   ## Overload for `unit` that also stores the distance between `v1` and `v2` 
   ## in `dist`.
   ##
   unitImpl[T](v1, v2, dist.addr)
 
-template unit*[T: SomeFloat](x1: T, y1: T, x2: T, y2: T): V2D[T] =
+template unit*[T: SomeFloat](x1, y1, x2, y2: T;): V2D[T] =
   ## Convenience overload taking two vectors as individual components.
   ##
   unitImpl[T](x1, y1, x2, y2, nil)
 
-template unit*[T: SomeFloat](x1: T, y1: T, x2: T, y2: T, dist: var T): V2D[T] =
+template unit*[T: SomeFloat](x1, y1, x2, y2: T; dist: var T): V2D[T] =
   ## Convenience overload taking two vectors as individual components, also
   ## stores the distance in `dist`.
   ##
@@ -326,18 +328,18 @@ template sqlength*[T: SomeFloat](v: V2D[T]): T =
   ##
   fdispatch[T](v2d_sqlengthf, v2d_sqlengthd, v.toNag.getPtr)
 
-template distance*[T: SomeFloat](a: V2D[T], b: V2D[T]): T =
+template distance*[T: SomeFloat](a, b: V2D[T];): T =
   ## Calculate the distance between points `a` and `b`.
   ##
   fdispatch[T](v2d_distf, v2d_distd, a.toNag.getPtr, b.toNag.getPtr)
 
-template sqdistance*[T: SomeFloat](a: V2D[T], b: V2D[T]): T =
+template sqdistance*[T: SomeFloat](a, b: V2D[T];): T =
   ## Calculate the distance squared between points `a` and `b`. Prefer this
   ## function over `distance` when comparing distances as it is more efficient.
   ##
   fdispatch[T](v2d_sqdistf, v2d_sqdistd, a.toNag.getPtr, b.toNag.getPtr)
 
-template angle*[T: SomeFloat](a: V2D[T], b: V2D[T]): T =
+template angle*[T: SomeFloat](a, b: V2D[T];): T =
   ## Calculate the angle between two vectors `a` and `b`. The angle returned is
   ## in radians.
   ## 
@@ -362,12 +364,12 @@ func `$`*[T: SomeFloat](s: S2D[T]): string =
   ##
   &"s2d({s.width}, {s.height})"
 
-template s2d*[T: SomeFloat](pwidth: T, pheight: T): S2D[T] =
+template s2d*[T: SomeFloat](pwidth, pheight: T;): S2D[T] =
   ## Creates a size with the given width and height.
   ## 
   S2D[T](width: pwidth, height: pheight)
 
-template size*[T: SomeFloat](width: T, height: T): S2D =
+template size*[T: SomeFloat](width, height: T;): S2D =
   ## Alias for `s2d`.
   ##
   s2d[T](width, height)
@@ -452,12 +454,22 @@ func `right=`*[T: SomeFloat](r: var R2D[T], val: T) =
 func `$`*[T: SomeFloat](r: R2D[T]): string =
   &"r2d({r.x}, {r.y}, {r.width}, {r.height})"
 
-template r2d*[T: SomeFloat](x: T, y: T, width: T, height: T): R2D[T] =
+template r2d*[T: SomeFloat](ppos: V2D[T], psize: S2D[T]): R2D[T] =
+  ## Creates a rectangle with the given position and size.
+  ##
+  R2D[T](pos: ppos, size: psize)
+
+template r2d*[T: SomeFloat](x, y, width, height: T;): R2D[T] =
   ## Creates a rectangle with the given components.
   ##
-  R2D[T](pos: v2d(x, y), size: s2d(width, height))
+  r2d(v2d(x, y), s2d(width, height))
 
-template rect*[T: SomeFloat](x: T, y: T, width: T, height: T): R2D[T] =
+template r2d*[T: SomeFloat](b: Box2D[T]): R2D[T] =
+  ## Creates a rectangle from a box.
+  ##
+  r2d(b.min, s2d(b.max.x - b.min.y, b.max.y - b.min.y))
+
+template rect*[T: SomeFloat](x, y, width, height: T;): R2D[T] =
   ## Alias for r2d.
   ##
   r2d(x, y, width, height)
@@ -467,12 +479,12 @@ template center*[T: SomeFloat](r: R2D[T]): V2D[T] =
   ##
   fromNag fdispatch[T](r2d_centerf, r2d_centerd, getPtr(toNag(r))) 
 
-template collides*[T: SomeFloat](a: R2D[T], b: R2D[T]): bool =
+template collides*[T: SomeFloat](a, b: R2D[T];): bool =
   ## Check if two rectangles `a` and `b` collide or intersect with each other.
   ## 
   toBool fdispatch[T](r2d_collidef, r2d_collided, getPtr(toNag(a)), getPtr(toNag(b)))
 
-template contains*[T: SomeFloat](r: R2D[T], x: T, y: T): bool =
+template contains*[T: SomeFloat](r: R2D[T], x, y: T;): bool =
   ## Check if a point is inside the rectangle.
   ##
   toBool fdispatch[T](r2d_containsf, r2d_containsd, getPtr(toNag(r)), x, y)
@@ -483,7 +495,7 @@ template contains*[T: SomeFloat](r: R2D[T], p: Point[T]): bool =
   ##
   contains(r, p.x, p.y)
 
-template isClipped*[T: SomeFloat](viewport: R2D[T], r: R2D[T]): bool =
+template isClipped*[T: SomeFloat](viewport, r: R2D[T];): bool =
   ## Tests if a rectangle, `r`, is contained in the rectangle `viewport`.
   ## `true` is returned if `r` is completely outside of `viewport`.
   ##
@@ -522,7 +534,7 @@ func `$`*[T: SomeFloat](t: T2D[T]): string =
   ##
   &"t2d({t.i}, {t.j}, {t.p})"
 
-template t2d*[T: SomeFloat](ix: T, iy: T, jx: T, jy: T, px: T, py: T): T2D[T] =
+template t2d*[T: SomeFloat](ix, iy, jx, jy, px, py: T;): T2D[T] =
   ## Initializes a transformation matrix with the given components of the
   ## matrix.
   ##
@@ -543,12 +555,12 @@ func t2d*(t: T2D[float64]): T2D[float32] =
   ##
   t2d_tof(cast[ptr T2Df](result.addr), t.toNag.getPtr)
 
-template move*[T: SomeFloat](t: var T2D[T], src: T2D[T], x: T, y: T) =
+template move*[T: SomeFloat](t: var T2D[T], src: T2D[T], x, y: T;) =
   ## Multiply a transformation by a translation operation
   ##
   fdispatch[T](t2d_movef, t2d_moved, toNag(addr(t)), src.toNag.getPtr, x, y)
 
-template move*[T: SomeFloat](t: var T2D[T], x: T, y: T) =
+template move*[T: SomeFloat](t: var T2D[T], x, y: T;) =
   ## Translates `t` by `x` and `y`.
   ##
   move[T](t, t, x, y)
@@ -563,12 +575,12 @@ template rotate*[T: SomeFloat](t: var T2D[T], angle: T) =
   ##
   rotate[T](t, t, angle)
 
-template scale*[T: SomeFloat](t: var T2D[T], src: T2D[T], sx: T, sy: T) =
+template scale*[T: SomeFloat](t: var T2D[T], src: T2D[T], sx, sy: T;) =
   ## Multiply the transformation by a scale operation
   ##
   fdispatch[T](t2d_scalef, t2d_scaled, toNag(addr(t)), src.toNag.getPtr, sx, sy)
 
-template scale*[T: SomeFloat](t: var T2D[T], sx: T, sy: T) =
+template scale*[T: SomeFloat](t: var T2D[T], sx, sy: T;) =
   ## Transforms `t` by scaling it by `sx` and `sy`.
   ##
   scale[T](t, t, sx, sy)
@@ -599,7 +611,7 @@ template inverse*[T: SomeFloat](t: var T2D[T]) =
   ##
   inverse[T](t, t)
 
-template mult*[T: SomeFloat](t: var T2D[T], src1: T2D[T], src2: T2D[T]) =
+template mult*[T: SomeFloat](t: var T2D[T], src1, src2: T2D[T];) =
   ## Multiply two transformations storing the result in `t`. Multiplying two
   ## transformations combines them into one transformation (composition).
   ##
@@ -615,7 +627,7 @@ template mult*[T: SomeFloat](v: var V2D[T], t: T2D[T], src: V2D[T]) =
   ##
   fdispatch[T](t2d_vmultf, t2d_vmultd, toNag(addr(v)), getPtr(toNag(t)), getPtr(toNag(src)))
 
-proc `*`*[T: SomeFloat](src1: T2D[T], src2: T2D[T]): T2D[T] =
+proc `*`*[T: SomeFloat](src1, src2: T2D[T];): T2D[T] =
   ## `*` overload for multiplying two transformations. The result is a
   ## transformation composed of `src1` and `src2`.
   ##
@@ -657,49 +669,51 @@ proc `$`*[T: SomeFloat](s: Seg2D[T]): string =
   ##
   &"seg2d({s.p0.x}, {s.p0.y}, {s.p1.x}, {s.p1.y})"
 
-template seg2d*[T: SomeFloat](x0: T, y0: T, x1: T, y1: T): Seg2D[T] =
-  ## Create a segment with its two points.
-  ##
-  Seg2D[T](impl: fdispatch[T](seg2df, seg2dd, x0, y0, x1, y1))
-
-template seg2d*[T: SomeFloat](p0: V2D[T], p1: V2D[T]): Seg2D[T] =
+template seg2d*[T: SomeFloat](pp0, pp1: V2D[T];): Seg2D[T] =
   ## Create a segment with its two points using vectors.
   ##
-  Seg2D[T](impl: fdispatch[T](seg2d_vf, seg2d_vd, p0.impl.getPtr, p1.impl.getPtr))
+  Seg2D[T](p0: pp0, p1: pp1)
+
+template seg2d*[T: SomeFloat](x0, y0, x1, y1: T;): Seg2D[T] =
+  ## Create a segment with its two points.
+  ##
+  seg2d(v2d(x0, y0), v2d(x1, y1))
+
 
 template length*[T: SomeFloat](s: Seg2D[T]): T =
   ## Calculate the length of the segment.
   ##
-  fdispatch[T](seg2d_lengthf, seg2d_lengthd, s.impl.getPtr)
+  fdispatch[T](seg2d_lengthf, seg2d_lengthd, getPtr(toNag(s)))
 
 template sqlength*[T: SomeFloat](s: Seg2D[T]): T =
   ## Calculate the squared length of the segment.
   ##
-  fdispatch[T](seg2d_sqlengthf, seg2d_sqlengthd, s.impl.getPtr)
+  fdispatch[T](seg2d_sqlengthf, seg2d_sqlengthd, getPtr(toNag(s)))
 
 template eval*[T: SomeFloat](s: Seg2D[T], t: T): V2D[T] =
   ## Given a parameter `t`, where `0 <= t <= 1`, get the point on the segment
   ## such that `t = 0` is `s.p0` and `t = 1` is `s.p1`
   ##
-  V2D[T](impl: fdispatch[T](seg2d_evalf, seg2d_evald, s.impl.getPtr, t))
+  fromNag fdispatch[T](seg2d_evalf, seg2d_evald, getPtr(toNag(s)), t)
 
 template closestParam*[T: SomeFloat](s: Seg2D[T], p: V2D[T]): T =
   ## Given a point `p`, find the the parameter of the segment that is closest
   ## to `p`.
   ##
-  fdispatch[T](seg2d_close_paramf, seg2d_close_paramd, s.impl.getPtr, p.impl.getPtr)
+  fdispatch[T](seg2d_close_paramf, seg2d_close_paramd, getPtr(toNag(s)), getPtr(toNag(p)))
 
-proc sqdist*[T: SomeFloat](s: Seg2D[T], p: V2D[T]): tuple[dist: T, t: T] =
+proc sqdist*[T: SomeFloat](s: Seg2D[T], p: V2D[T]): tuple[dist, t: T;] =
   ## Get the squared distance from a point to a segment, along with the
   ## parameter on the line.
   ##
-  result.dist = fdispatch[T](seg2d_point_sqdistf, seg2d_point_sqdistd, s.impl.getPtr, p.impl.getPtr, result.t.addr)
+  result.dist = fdispatch[T](seg2d_point_sqdistf, seg2d_point_sqdistd,
+                             getPtr(toNag(s)), getPtr(toNag(p)), result.t.addr)
 
-proc sqdist*[T: SomeFloat](s1: Seg2D[T], s2: Seg2D[T]): tuple[dist: T, t1: T, t2: T] =
+proc sqdist*[T: SomeFloat](s1, s2: Seg2D[T];): tuple[dist, t1, t2: T;] =
   ## Get the squared distance from two segments, along with their parameters.
   ##
-  result.dist = fdispatch[T](seg2d_sqdistf, seg2d_sqdistd, s1.impl.getPtr,
-                             s2.impl.getPtr, result.t1.addr, result.t2.addr)
+  result.dist = fdispatch[T](seg2d_sqdistf, seg2d_sqdistd, getPtr(toNag(s1)),
+                             getPtr(toNag(s2)), result.t1.addr, result.t2.addr)
 
 # ======================================================================= Cir2D
 
@@ -716,7 +730,7 @@ proc `$`*[T: SomeFloat](cir: Cir2D[T]): string =
   ##
   &"cir2d({cir.c.x}, {cir.c.y}, {cir.r})"
 
-template cir2d*[T: SomeFloat](px: T, py: T, pr: T): Cir2D[T] =
+template cir2d*[T: SomeFloat](px, py, pr: T;): Cir2D[T] =
   ## Create a circle with the given components. `x` and `y` is the center
   ## point of the circle and `r` is the radius.
   ##
@@ -747,7 +761,7 @@ template area*[T: SomeFloat](c: Cir2D[T]): T =
   ##
   fdispatch[T](cir2d_areaf, cir2d_aread, getPtr(toNag(c)))
 
-func isNull*[T: SomeFloat](c: Cir2D): bool =
+func isNull*[T: SomeFloat](c: Cir2D[T]): bool =
   ## Check if a circle is null (dimensionless), or has a radius less than 0.
   ##
   c.r < T(0.0)
@@ -767,12 +781,25 @@ template toNag[T: SomeFloat](x: ptr Box2D[T]): auto = fcast[T](x, ptr Box2Df, pt
 func `$`*[T: SomeFloat](b: Box2D[T]): string =
   ## Get a string representation of a box.
   ##
-  ""
+  &"box2d({b.min.x}, {b.min.y}, {b.max.x}, {b.max.y})"
 
-template box2d*[T: SomeFloat](minX: T, minY: T, maxX: T, maxY: T): Box2D[T] =
+template box2d*[T: SomeFloat](pmin, pmax: V2D[T]; ): Box2D[T] =
+  ## Create a new box with the given limits as vectors.
+  ##
+  Box2D[T](min: pmin, max: pmax)
+
+template box2d*[T: SomeFloat](minX, minY, maxX, maxY: T;): Box2D[T] =
   ## Create a new box with the given limits.
   ##
-  Box2D[T](min: v2d(minX, minY), max: v2d(maxX, maxY))
+  box2d(v2d(minX, minY), v2d(maxX, maxY))
+
+template box2d*[T: SomeFloat](rect: R2D[T]): Box2D[T] =
+  ## Create a new box from a rectangle.
+  ##
+  Box2D[T](
+    min: rect.pos,
+    max: v2d(rect.pos.x + rect.size.width, rect.pos.y + rect.size.height)
+  )
 
 proc box2d*[T: SomeFloat](points: openArray[V2D[T]]): Box2D[T] =
   ## Create a new box that contains the given array of points.
@@ -852,14 +879,14 @@ proc `=sink`*[T: SomeFloat](dest: var Obb2D[T], src: Obb2D[T]) =
 
 template toNag[T: SomeFloat](obb: Obb2D[T]): auto = obb.impl
 
-template obb2d*[T: SomeFloat](center: V2D[T], width: T, height: T, angle: T): Obb2D[T] =
+template obb2d*[T: SomeFloat](center: V2D[T], width, height, angle: T;): Obb2D[T] =
   ## Create a new oriented box with center point, dimensions and angle. `angle`
   ## is in radians, with respect to the x-axis.
   ##
   Obb2D[T](impl: fdispatch[T](obb2d_createf, obb2d_created,
     getPtr(toNag(center)), width, height, angle))
 
-template obb2d*[T: SomeFloat](p0: V2D[T], p1: V2D[T], thickness: T): Obb2D[T] =
+template obb2d*[T: SomeFloat](p0, p1: V2D[T]; thickness: T): Obb2D[T] =
   ## Create a new oriented box from a line segment.
   ##
   Obb2D[T](impl: fdispatch[T](obb2d_from_linef, obb2d_from_lined,
@@ -873,15 +900,15 @@ proc obb2d*[T: SomeFloat](points: openArray[V2D[T]]): Obb2D[T] =
     toNag(unsafeAddr(points[0])), points.len.uint32
   )
 
-template update*[T: SomeFloat](o: var Obb2D[T], center: V2D[T], width: T,
-                               height: T, angle: T) =
+template update*[T: SomeFloat](o: var Obb2D[T], center: V2D[T], width,
+                               height, angle: T;) =
   ## Update the box's parameters.
   ##
   fdispatch[T](obb2d_updatef, obb2d_updated, o.impl,
     getPtr(toNag(center)), width, height, angle
   )
 
-template move*[T: SomeFloat](o: var Obb2D[T], offsetX: T, offsetY: T) =
+template move*[T: SomeFloat](o: var Obb2D[T], offsetX, offsetY: T;) =
   ## Move by box by the given displacements.
   ##
   fdispatch[T](obb2d_movef, obb2d_moved, o.impl, offsetX, offsetY)
@@ -942,12 +969,12 @@ func `$`*[T: SomeFloat](t: Tri2D[T]): string =
   ##
   &"tri2d({t.p0.x}, {t.p0.y}, {t.p1.x}, {t.p1.y}, {t.p2.x}, {t.p2.y})"
 
-template tri2d*[T: SomeFloat](pp0: V2D[T], pp1: V2D[T], pp2: V2D[T]): Tri2D[T] =
+template tri2d*[T: SomeFloat](pp0, pp1, pp2: V2D[T];): Tri2D[T] =
   ## Create a triangle from the coordinates as vectors of its three vertices.
   ##
   Tri2D[T](p0: pp0, p1: pp1, p2: pp2)
 
-template tri2d*[T: SomeFloat](x0: T, y0: T, x1: T, y1: T, x2: T, y2: T): Tri2D[T] =
+template tri2d*[T: SomeFloat](x0, y0, x1, y1, x2, y2: T;): Tri2D[T] =
   ## Create a triangle from the coordinates of its three vertices.
   ##
   tri2d(v2d(x0, y0), v2d(x1, y1), v2d(x2, y2))
@@ -1114,7 +1141,7 @@ template collisionImpl[T: SomeFloat](
   toBool fdispatch[T](fun32, fun64, getPtr(toNag(obj1)), getPtr(toNag(obj2)),
                       toNag(addr(col)))
 
-template collision*[T: SomeFloat](col: var Col2D[T], p1: V2D[T], p2: V2D[T], tol: T): bool =
+template collision*[T: SomeFloat](col: var Col2D[T], p1, p2: V2D[T]; tol: T): bool =
   ## Point vs Point
   ## 
   ## Check for a collision between two points. If a collision occurred, details
@@ -1132,7 +1159,7 @@ template collision*[T: SomeFloat](col: var Col2D[T], seg: Seg2D[T], p: V2D[T], t
   ##
   collisionImpl[T](col2d_segment_pointf, col2d_segment_pointd, col, p1, p2, tol)
 
-template collision*[T: SomeFloat](col: var Col2D[T], seg1: Seg2D[T], seg2: Seg2D[T]): bool =
+template collision*[T: SomeFloat](col: var Col2D[T], seg1, seg2: Seg2D[T];): bool =
   ## Segment vs Segment.
   ##
   ## Check for a collision between two segments. If a collision occurred,
@@ -1156,7 +1183,7 @@ template collision*[T: SomeFloat](col: var Col2D[T], cir: Cir2D[T], seg: Seg2D[T
   ## 
   collisionImpl[T](col2d_circle_segmentf, col2d_circle_segmentd, col, cir, seg)
 
-template collision*[T: SomeFloat](col: var Col2D[T], cir1: Cir2D[T], cir2: Cir2D[T]): bool =
+template collision*[T: SomeFloat](col: var Col2D[T], cir1, cir2: Cir2D[T];): bool =
   ## Circle vs Circle.
   ##
   ## Check for a collision between two circles. If a collision
@@ -1188,7 +1215,7 @@ template collision*[T: SomeFloat](col: var Col2D[T], box: Box2D[T], cir: Cir2D[T
   ## 
   collisionImpl[T](col2d_box_circlef, col2d_box_circled, col, box, cir)
 
-template collision*[T: SomeFloat](col: var Col2D[T], box1: Box2D[T], box2: Box2D[T]): bool =
+template collision*[T: SomeFloat](col: var Col2D[T], box1, box2: Box2D[T];): bool =
   ## Box vs Box.
   ##
   ## Check for a collision between two boxes. If a collision
@@ -1228,7 +1255,7 @@ template collision*[T: SomeFloat](col: var Col2D[T], obb: Obb2D[T], box: Box2D[T
   ## 
   collisionImpl[T](col2d_obb_boxf, col2d_obb_boxd, col, obb, box)
 
-template collision*[T: SomeFloat](col: var Col2D[T], obb1: Obb2D[T], obb2: Obb2D[T]): bool =
+template collision*[T: SomeFloat](col: var Col2D[T], obb1, obb2: Obb2D[T];): bool =
   ## Oriented Box vs Oriented Box.
   ##
   ## Check for a collision between two oriented boxes. If a collision
@@ -1276,7 +1303,7 @@ template collision*[T: SomeFloat](col: var Col2D[T], tri: Tri2D[T], obb: Obb2D[T
   ## 
   collisionImpl[T](col2d_tri_obbf, col2d_tri_obbd, col, tri, obb)
 
-template collision*[T: SomeFloat](col: var Col2D[T], tri1: Tri2D[T], tri2: Tri2D[T]): bool =
+template collision*[T: SomeFloat](col: var Col2D[T], tri1, tri2: Tri2D[T];): bool =
   ## Triangle vs Triangle.
   ##
   ## Check for a collision between two triangles. If a collision
@@ -1332,7 +1359,7 @@ template collision*[T: SomeFloat](col: var Col2D[T], pol: Pol2D[T], tri: Tri2D[T
   ## 
   collisionImpl[T](col2d_poly_trif, col2d_poly_trid, col, pol, tri)
 
-template collision*[T: SomeFloat](col: var Col2D[T], pol1: Pol2D[T], pol2: Pol2D[T]): bool =
+template collision*[T: SomeFloat](col: var Col2D[T], pol1, pol2: Pol2D[T];): bool =
   ## Polygon vs Polygon.
   ##
   ## Check for a collision between two polygons. If a collision

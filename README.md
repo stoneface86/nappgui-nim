@@ -48,6 +48,8 @@ No versions have been released yet as this library is currently a WIP.
 
 ## Dependencies
 
+Nim v1.4.0 and up is required.
+
 A vendored copy of NAppGUI is included in this repository so you will only
 need to install NAppGUI's dependencies:
 
@@ -85,10 +87,11 @@ import nappgui/...  # specific imports (recommended)
 
 ## Options
 
-| Define        | Default     | Description                               |
-|---------------|-------------|-------------------------------------------|
-| `nappguiInet` | not present | Enables compilation of the `inet` library |
-| `nappguiRoot` | `""`        | Build directory of the nappgui C library  |
+| Define         | Default     | Description                                      |
+|----------------|-------------|--------------------------------------------------|
+| `nappguiInet`  | not present | Enables compilation of the `inet` library        |
+| `nappguiRoot`  | `""`        | Build directory of the nappgui C library         |
+| `nappguiTrace` | not present | Log when building nappgui during project compile |
 
 By default, the `inet` library is not compiled, as Nim already provides this
 functionality in its standard library. To enable this library, define

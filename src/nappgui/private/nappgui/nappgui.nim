@@ -61,6 +61,7 @@ func getPassL(): string =
     # libgtk3
     const gtkLibs = gorge("pkg-config gtk+-3.0 --libs", "", "0")
     args.add gtkLibs
+    args.add "-lstdc++"
   elif defined(macosx):
     args.add "-framework Cocoa"
     const osxVersionMajor = block:

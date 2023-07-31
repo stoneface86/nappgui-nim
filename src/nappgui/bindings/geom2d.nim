@@ -266,7 +266,7 @@ proc cir2d_is_nullf*(cir: ptr Cir2Df): bool_t
 proc cir2dd*(x: real64_t, y: real64_t, r: real64_t): Cir2Dd
 proc cir2d_from_boxd*(box: ptr Box2Dd): Cir2Dd
 proc cir2d_from_pointsd*(p: ptr V2Df, n: uint32_t): Cir2Dd
-proc cir2d_minimumd*(p: ptr V2Df, n: uint32_t): Cir2Dd
+proc cir2d_minimumd*(p: ptr V2Dd, n: uint32_t): Cir2Dd
 proc cir2d_aread*(cir: ptr Cir2Dd): real64_t
 proc cir2d_is_nulld*(cir: ptr Cir2Dd): bool_t
 

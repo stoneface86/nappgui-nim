@@ -387,101 +387,177 @@ test "T2D.decompose":
 
 # ======================================================================= Seg2D
 
+const testSeg = seg2d(1.0, 1.0, 10.0, 10.0)
+
 test "Seg2D.`$`":
-  skip()
+  check $testSeg == "seg2d(1.0, 1.0, 10.0, 10.0)"
 
 test "Seg2D.seg2d":
-  skip()
+  # testSeg was initialized by seg2d
+  check:
+    testSeg.p0 == v2d(1.0, 1.0)
+    testSeg.p1 == v2d(10.0, 10.0)
 
 test "Seg2D.length":
-  skip()
+  # length of testSeg is 12.72792206
+  check testSeg.length() in 12.6 .. 12.8
 
 test "Seg2D.sqlength":
-  skip()
+  # 9^2 + 9^2 = 162
+  check testSeg.sqlength() == 162.0
 
 test "Seg2D.eval":
-  skip()
+  check:
+    testSeg.eval(0.0) == v2d(1.0, 1.0)
+    testSeg.eval(1.0) == v2d(10.0, 10.0)
 
 test "Seg2D.closestParam":
-  skip()
+  check testSeg.closestParam(v2d(100.0, -2.0)) in 0.0 .. 1.0
 
 test "Seg2D.sqdist":
-  skip()
+  block:
+    let res = testSeg.sqdist(v2d(3.0, 5.0))
+    check:
+      res.dist >= 0.0
+      res.t in 0.0 .. 1.0
+  block:
+    let res = testSeg.sqdist(seg2d(0.0, 0.0, 1.0, 1.0))
+    check:
+      res.dist >= 0.0
+      res.t1 in 0.0 .. 1.0
+      res.t2 in 0.0 .. 1.0
+
 
 # ======================================================================= Cir2D
 
+const testCircle = cir2d(2.0, 4.0, 5.0)
+
 test "Cir2D.`$`":
-  skip()
+  check $testCircle == "cir2d(2.0, 4.0, 5.0)"
 
 test "Cir2D.cir2d":
-  skip()
+  check:
+    testCircle.c.x == 2.0
+    testCircle.c.y == 4.0
+    testCircle.r == 5.0
 
 test "Cir2D.minimum":
-  skip()
+  let cir = minimum([
+    point(1.0, 0.0),
+    point(0.0, 2.0),
+    point(-3.0, 0.0),
+    point(0.0, -2.0)
+  ])
+  check not cir.isNull()
 
 test "Cir2D.area":
-  skip()
+  check testCircle.area >= 0.0
 
 test "Cir2D.isNull":
-  skip()
+  check not testCircle.isNull()
 
 # ======================================================================= Box2D
 
+const testBox = box2d(2.0, 2.0, 10.0, 15.0)
+
 test "Box2D.`$`":
-  skip()
+  check $testBox == "box2d(2.0, 2.0, 10.0, 15.0)"
 
 test "Box2D.box2d":
-  skip()
+  check:
+    testBox.min.x == 2.0
+    testBox.min.y == 2.0
+    testBox.max.x == 10.0
+    testBox.max.y == 15.0
+  # rect conversion
+  check box2d(rect(2.0, 2.0, 8.0, 13.0)) == testBox
 
 test "Box2D.center":
-  skip()
+  check testBox.center() == point(6.0, 8.5)
 
 test "Box2D.add":
-  skip()
+  var b = testBox
+  b.add(point(0.0, 0.0))
+  check b.min == point(0.0, 0.0)
 
 test "Box2D.merge":
-  skip()
+  var b = testBox
+  b.merge(box2d(9.0, 14.0, 20.0, 20.0))
+  check b == box2d(2.0, 2.0, 20.0, 20.0)
 
 test "Box2D.segments":
-  skip()
+  let segments = testBox.segments()
+  check:
+    segments[0] == seg2d(2.0, 2.0, 10.0, 2.0)
+    segments[1] == seg2d(10.0, 2.0, 10.0, 15.0)
+    segments[2] == seg2d(10.0, 15.0, 2.0, 15.0)
+    segments[3] == seg2d(2.0, 15.0, 2.0, 2.0)
 
 test "Box2D.area":
-  skip()
+  check testBox.area() == 104.0
 
 test "Box2D.isNull":
-  skip()
+  check not testBox.isNull()
 
 # ======================================================================= Obb2D
 
 test "Obb2D.obb2d":
-  skip()
+  block:
+    let obb = obb2d(point(0.0, 0.0), 100.0, 100.0, 0.0)
+    check obb.impl != nil
+  block:
+    let obb = obb2d(point(0.0, 0.0), point(1.0, 1.0), 4.0)
+    check obb.impl != nil
+  block:
+    let obb = obb2d([
+      point(1.0, 1.0),
+      point(-1.0, 1.0),
+      point(-1.0, -1.0),
+      point(1.0, -1.0)
+    ])
+    check obb.impl != nil
 
 test "Obb2D.update":
-  skip()
+  var obb = obb2d(point(1.0, 1.0), 10.0, 20.0, 0.0)
+  obb.update(point(0.0, 0.0), 12.0, 25.0, 1.0)
+  check:
+    obb.center() == point(0.0, 0.0)
+    obb.width() == 12.0
+    obb.height() == 25.0
+    obb.angle() == 1.0
 
 test "Obb2D.move":
-  skip()
+  const
+    origin = point(-1.0f, 1.0f)
+    newOrigin = point(1.0f, -1.0f)
+  var obb = obb2d(origin, 1.0f, 1.0f, 0.0f)
+  obb.move(newOrigin.x - origin.x, newOrigin.y - origin.y)
+  check:
+    obb.center() == newOrigin
 
 test "Obb2D.transform":
-  skip()
+  var t = Identity
+  t.move(1.0, 2.0)
+  var obb = obb2d(point(0.0, 0.0), 1.0, 1.0, 0.0)
+  obb.transform(t)
+  check obb.center() == point(1.0, 2.0)
 
 test "Obb2D.corners":
-  skip()
-
-test "Obb2D.width":
-  skip()
-
-test "Obb2D.height":
-  skip()
-
-test "Obb2D.angle":
-  skip()
+  let obb = obb2d(point(0.0, 0.0), 2.0, 2.0, 0.0)
+  let corners = obb.corners()
+  check:
+    corners[0] == point(-1.0, -1.0)
+    corners[1] == point(1.0, -1.0)
+    corners[2] == point(1.0, 1.0)
+    corners[3] == point(-1.0, 1.0)
 
 test "Obb2D.area":
-  skip()
+  let obb = obb2d(point(0.0, 0.0), 3.0, 2.0, 0.0)
+  check obb.area() == 6.0
 
 test "Obb2D.toBox":
-  skip()
+  let obb = obb2d(point(0.0, 0.0), 2.0, 2.0, 0.0)
+  check obb.toBox() == box2d(-1.0, -1.0, 1.0, 1.0)
 
 # ======================================================================= Tri2D
 
