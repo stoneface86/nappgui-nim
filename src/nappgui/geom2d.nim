@@ -210,7 +210,7 @@ template toNag*[T](x: V2D[T]): auto = fcast[T](x, V2Df, V2Dd)
   ##
 
 template toNag[T](x: ptr V2D[T]): auto = fcast[T](x, ptr V2Df, ptr V2Dd)
-template fromNag[T](x: ptr V2Df|ptr V2Dd): auto = cast[ptr V2D[fget(x)]](x)
+template fromNag(x: ptr V2Df|ptr V2Dd): auto = cast[ptr V2D[fget[ptr V2Df, ptr V2Dd](x)]](x)
 
 proc `$`*[T: SomeFloat](v: V2D[T]): string =
   ## Get a string representation of `v`.
@@ -527,7 +527,7 @@ template toNag*[T: SomeFloat](x: T2D[T]): auto = fcast[T](x, T2Df, T2Dd)
   ## Convert from a Nim T2D **to** an NAppGUI one.
   ##
 
-template toNag[T: SomeFloat](x: ptr T2D[T]): auto = fcast[T](x, ptr T2Df, ptr T2Dd)
+template toNag*[T: SomeFloat](x: ptr T2D[T]): auto = fcast[T](x, ptr T2Df, ptr T2Dd)
 
 func `$`*[T: SomeFloat](t: T2D[T]): string =
   ## Get a string representation of a transformation matrix.
@@ -1032,7 +1032,7 @@ proc `=sink`*[T: SomeFloat](dest: var Pol2D[T], src: Pol2D[T]) =
 
 template toNag[T](pol: Pol2D[T]): auto = pol.impl
 
-template pol2d*[T: SomeFloat](points: openArray[V2D[T]]): Pol2D[T] =
+func pol2d*[T: SomeFloat](points: openArray[V2D[T]]): Pol2D[T] =
   ## Creates a polygon from the given array of points.
   ##
   Pol2D[T](impl: fdispatch[T](pol2d_createf, pol2d_created,
@@ -1106,11 +1106,11 @@ template centroid*[T: SomeFloat](pol: Pol2D[T]): V2D[T] =
   ##
   fromNag fdispatch[T](pol2d_centroidf, pol2d_centroidd, pol.impl)
 
-template visualCenter*[T: SomeFloat](pol: Pol2D[T]): V2D[T] =
+template visualCenter*[T: SomeFloat](pol: Pol2D[T], tol: T): V2D[T] =
   ## Calculate the visual center, or label point, of a polygon. Uses an
   ## adaptation of the polylabel algorithm from `MapBox<https://github.com/mapbox/polylabel>`_.
   ##
-  fromNag fdispatch[T](pol2d_visual_centerf, pol2d_visual_centerd, pol.impl)
+  fromNag fdispatch[T](pol2d_visual_centerf, pol2d_visual_centerd, pol.impl, tol)
 
 proc triangles*[T: SomeFloat](pol: Pol2D[T]): seq[Tri2D[T]] =
   ## Gets a list of the triangles that make up this polygon.

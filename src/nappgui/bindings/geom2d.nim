@@ -358,7 +358,7 @@ proc tri2d_centroidf*(tri: ptr Tri2Df): V2Df
 proc tri2dd*(x0: real64_t, y0: real64_t, x1: real64_t, y1: real64_t,
              x2: real64_t, y2: real64_t): Tri2Dd
 proc tri2d_vd*(p0: ptr V2Dd, p1: ptr V2Dd, p2: ptr V2Dd): Tri2Dd
-proc tri2d_transformd*(tri: ptr Tri2Dd, t2d: ptr T2Df)
+proc tri2d_transformd*(tri: ptr Tri2Dd, t2d: ptr T2Dd)
 proc tri2d_aread*(tri: ptr Tri2Dd): real64_t
 proc tri2d_ccwd*(tri: ptr Tri2Dd): bool_t
 proc tri2d_centroidd*(tri: ptr Tri2Dd): V2Dd
@@ -380,7 +380,7 @@ proc pol2d_boxf*(pol: ptr Pol2Df): Box2Df
 proc pol2d_ccwf*(pol: ptr Pol2Df): bool_t
 proc pol2d_convexf*(pol: ptr Pol2Df): bool_t
 proc pol2d_centroidf*(pol: ptr Pol2Df): V2Df
-proc pol2d_visual_centerf*(pol: ptr Pol2Df): V2Df
+proc pol2d_visual_centerf*(pol: ptr Pol2Df, tol: real32_t): V2Df
 proc pol2d_trianglesf*(pol: ptr Pol2Df): ptr Array[Tri2Df]
 proc pol2d_convex_partitionf*(pol: ptr Pol2Df): ptr Array[ptr Pol2Df]
 
@@ -396,7 +396,7 @@ proc pol2d_boxd*(pol: ptr Pol2Dd): Box2Dd
 proc pol2d_ccwd*(pol: ptr Pol2Dd): bool_t
 proc pol2d_convexd*(pol: ptr Pol2Dd): bool_t
 proc pol2d_centroidd*(pol: ptr Pol2Dd): V2Dd
-proc pol2d_visual_centerd*(pol: ptr Pol2Dd): V2Dd
+proc pol2d_visual_centerd*(pol: ptr Pol2Dd, tol: real64_t): V2Dd
 proc pol2d_trianglesd*(pol: ptr Pol2Dd): ptr Array[Tri2Dd]
 proc pol2d_convex_partitiond*(pol: ptr Pol2Dd): ptr Array[ptr Pol2Dd]
 

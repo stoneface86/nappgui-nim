@@ -30,7 +30,7 @@ proc exampleLines() =
   ctx.clear(cGray)
   ctx.setLineColor(cBlack)
   
-  var matrix = t2d[float32]() # identity matrix
+  var matrix = IdentityF
 
   block: # line thickness and cap style
     var x = 15.0f
@@ -74,7 +74,7 @@ proc exampleLines() =
   # colors
   ctx.setLineWidth(10)
   ctx.setLineCap(LineCap.flat)
-  ctx.setMatrix(t2d[float32]())
+  ctx.setMatrix(IdentityF)
   block:
     var y = 300.0f
     for color in [cRed, cGreen, cBlue, cYellow, cCyan, cMagenta]:

@@ -561,58 +561,102 @@ test "Obb2D.toBox":
 
 # ======================================================================= Tri2D
 
+const testTri = tri2d(-2.0, -1.0, 0.0, 1.0, 2.0, -1.0)
+
 test "Tri2D.`$`":
-  skip()
+  check $testTri == "tri2d(-2.0, -1.0, 0.0, 1.0, 2.0, -1.0)"
 
 test "Tri2D.tri2d":
-  skip()
+  check:
+    testTri.p0 == point(-2.0, -1.0)
+    testTri.p1 == point(0.0, 1.0)
+    testTri.p2 == point(2.0, -1.0)
 
 test "Tri2D.transform":
-  skip()
+  var t = Identity
+  t.move(-1.0, 1.0)
+  var tri = testTri
+  tri.transform(t)
+  check:
+    tri.p0 == point(-3.0, 0.0)
+    tri.p1 == point(-1.0, 2.0)
+    tri.p2 == point(1.0, 0.0)
 
 test "Tri2D.area":
-  skip()
+  check testTri.area() == 4.0
 
 test "Tri2D.isCounterClockwise":
-  skip()
+  check testTri.isClockwise()
 
 test "Tri2D.centroid":
-  skip()
+  discard testTri.centroid()
 
 # ======================================================================= Pol2D
 
+const testPolygonPoints = [
+    point(0.0, 1.0),
+    point(0.0, 0.0),
+    point(1.0, 0.0)
+  ]
+
+func getTestPolygon(): Pol2D[float64] =
+  result = pol2d(testPolygonPoints)
+
 test "Pol2D.pol2d":
-  skip()
+  let p = getTestPolygon()
+  check p.impl != nil
 
 test "Pol2D.convexHull":
   skip()
 
 test "Pol2D.transform":
-  skip()
+  var p = getTestPolygon()
+  var t = Identity
+  t.scale(1.0, 2.0)
+  p.transform(t)
 
 test "Pol2D.len":
-  skip()
+  var p = getTestPolygon()
+  check p.len() == 3
 
 test "Pol2D.rawPoints":
-  skip()
+  let p = getTestPolygon()
+  let points = p.rawPoints()
+  check:
+    points[][0] == testPolygonPoints[0]
+    points[][1] == testPolygonPoints[1]
+    points[][2] == testPolygonPoints[2]
 
 test "Pol2D.points":
-  skip()
+  let p = getTestPolygon()
+  let points = p.points()
+  check points == testPolygonPoints
 
 test "Pol2D.area":
-  skip()
+  let p = getTestPolygon()
+  check p.area() == 0.5
 
 test "Pol2D.toBox":
-  skip()
+  let p = getTestPolygon()
+  check p.toBox() == box2d(0.0, 0.0, 1.0, 1.0)
 
 test "Pol2D.isCounterClockwise":
-  skip()
+  let p = getTestPolygon()
+  check p.isCounterClockwise()
 
 test "Pol2D.centroid":
-  skip()
+  let p = getTestPolygon()
+  let c = p.centroid()
+  check:
+    c.x in 0.0 .. 1.0
+    c.y in 0.0 .. 1.0
 
 test "Pol2D.visualCenter":
-  skip()
+  let p = getTestPolygon()
+  let c = p.visualCenter(1.0)
+  check:
+    c.x in 0.0 .. 1.0
+    c.y in 0.0 .. 1.0
 
 test "Pol2D.triangles":
   skip()

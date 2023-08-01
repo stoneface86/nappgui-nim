@@ -5,6 +5,9 @@
 ## 
 ## `NAppGUI Draw2D Docs<https://nappgui.com/en/draw2d/draw2d.html>`_
 ## `NAppGUI Docs<https://nappgui.com/en/sdk/sdk.html>`_
+## 
+## .. note:: `draw2dStart()` must be called before using this module, and
+##           `draw2dFinish()` must be called when no longer using this module.
 ##  
 
 import bindings/[core, osbs, sewer, geom2d, draw2d]
@@ -181,12 +184,16 @@ const
   cMagenta*     = Color(0xFFFF00FF)
     ## Color constant for magenta, #FF00FF.
 
-template toImpl(s: set[FontStyle]): uint32 =
-  block:
-    {.push warning[CastSizes]:off.}
-    let res = cast[cint](s).uint32
-    {.pop.}
-    res
+# CastSizes warning was added in 1.6.14
+when (NimMajor, NimMinor, NimPatch) >= (1, 6, 14):
+  template toImpl(s: set[FontStyle]): uint32 =
+    block:
+      {.push warning[CastSizes]:off.}
+      let res = cast[cint](s).uint32
+      {.pop.}
+      res
+else:
+  template toImpl(s: set[FontStyle]): uint32 = cast[cint](s).uint32
 
 # ======================================================================== DCtx
 
@@ -221,7 +228,8 @@ template setMatrix*[T: SomeFloat](ctx: var DCtx, matrix: Matrix[T]) =
   ## Set the transformation matrix for the context. Origin is in the top-left
   ## corner, X increases rightwards and Y increases downwards.
   ##
-  fdispatch[T](draw_matrixf, draw_matrixd, ctx.impl, matrix.impl.getPtr)
+  fdispatch[T](draw_matrixf, draw_matrixd, ctx.impl, getPtr(toNag(matrix))
+  )
 
 template setCartesianMatrix*[T: SomeFloat](ctx: var DCtx, matrix: Matrix[T]) =
   ## Sets the reference system in cartesian coordinates and sets the
@@ -252,17 +260,14 @@ proc drawLines*(ctx: var DCtx, closed: bool, points: openArray[PointF]) =
     points.len.uint32_t
   )
 
-template drawArc*(ctx: var DCtx, x: float32, y: float32, radius: float32,
-                  start: float32, sweep: float32) =
+template drawArc*(ctx: var DCtx, x, y, radius, start, sweep: float32; ) =
   ## Draw an arc or a segment of a circle. `start` is the starting angle of
   ## the arc with respect to vector [1,0]. `sweep` is angle from the starting
   ## angle that the arc will be drawn.
   ##
   draw_arc(ctx.impl, x, y, radius, start, sweep)
 
-template drawBezier*(ctx: var DCtx, x0: float32, y0: float32, x1: float32,
-                     y1: float32, x2: float32, y2: float32, x3: float32,
-                     y3: float32) =
+template drawBezier*(ctx: var DCtx, x0, y0, x1, y1, x2, y2, x3, y3: float32; ) =
   ## Draw a cubic bezier curve using two endpoints and two intermediate points.
   ##
   draw_bezier(ctx.impl, x0, y0, x1, y1, x2, y2, x3, y3)
@@ -305,26 +310,23 @@ template setLineFill*(ctx: var DCtx) =
   ##
   draw_line_fill(ctx.impl)
 
-template drawRect*(ctx: var DCtx, op: DrawOp,
-               x: float32, y: float32, width: float32, height: float32) =
+template drawRect*(ctx: var DCtx, op: DrawOp, x, y, width, height: float32; ) =
   ## Draws a rectangle.
   ##
   draw_rect(ctx.impl, castEnum(op, drawop_t), x, y, width, height)
 
-template drawRoundedRect*(ctx: var DCtx, op: DrawOp, x: float32, y: float32,
-                          width: float32, height: float32, radius: float32) =
+template drawRoundedRect*(ctx: var DCtx, op: DrawOp, x, y,
+                          width, height, radius: float32; ) =
   ## Draws a rectangle with rounded corners.
   ##                      
   draw_rndrect(ctx.impl, castEnum(op, drawop_t), x, y, width, height, radius)
 
-template drawCircle*(ctx: var DCtx, op: DrawOp, x: float32, y: float32,
-                     radius: float32) =
+template drawCircle*(ctx: var DCtx, op: DrawOp, x, y, radius: float32; ) =
   ## Draws a circle.
   ##
   draw_circle(ctx.impl, castEnum(op, drawop_t), x, y, radius)
 
-template drawEllipse*(ctx: var DCtx, op: DrawOp, x: float32, y: float32,
-                      radx: float32, rady: float32) =
+template drawEllipse*(ctx: var DCtx, op: DrawOp, x, y, radx, rady: float32; ) =
   ## Draws an ellipse.
   ##
   draw_ellipse(ctx.impl, castEnum(op, drawop_t), x, y, radx, rady)
@@ -343,8 +345,7 @@ template setFillColor*(ctx: var DCtx, color: Color) =
   draw_fill_color(ctx.impl, color)
 
 proc setGradientFill*(ctx: var DCtx, colors: openArray[Color],
-                      stops: openArray[float32], x0: float32, y0: float32,
-                      x1: float32, y1: float32) =
+                      stops: openArray[float32], x0, y0, x1, y1: float32; ) =
   ## Sets a linear gradient for filling areas. If `colors` and `stops` are not
   ## the same length, then both will be treated with the length of the smallest
   ## one.
@@ -360,7 +361,7 @@ proc setGradientFill*(ctx: var DCtx, colors: openArray[Color],
 template setFillMatrix*(ctx: var DCtx, mat: MatrixF) =
   ## Sets a transformation matrix for the fill pattern.
   ##
-  draw_fill_matrix(ctx.impl, mat.impl.getPtr)
+  draw_fill_matrix(ctx.impl, getPtr(toNag(mat)))
 
 template setFillWrap*(ctx: var DCtx, wrap: Fillwrap) =
   ## Sets the behavior of the gradient or fill pattern.
@@ -377,13 +378,12 @@ template setTextColor*(ctx: var DCtx, color: Color) =
   ##
   draw_text_color(ctx.impl, color)
 
-template drawText*(ctx: var DCtx, text: string, x: float32, y: float32) =
+template drawText*(ctx: var DCtx, text: string, x, y: float32; ) =
   ## Draw a block of text.
   ##
   draw_text(ctx.impl, text.cstring, x, y)
 
-template drawText*(ctx: var DCtx, op: DrawOp, text: string, x: float32,
-                   y: float32) =
+template drawText*(ctx: var DCtx, op: DrawOp, text: string, x, y: float32; ) =
   ## Draw a block of text as a geometric area. This overload of drawText allows
   ## you to use gradients, only draw the outline, etc. Keep in mind that this
   ## operation is much less efficient than the the plain drawText overload.
@@ -414,7 +414,7 @@ template setMulitlineTextAlign*(ctx: var DCtx, halign: HAlign) =
   ##
   draw_text_halign(ctx.impl, castEnum(halign, align_t))
 
-proc getExtents*(ctx: var DCtx, text: string, refwidth: float32): tuple[width: float32, height: float32] =
+proc getExtents*(ctx: var DCtx, text: string, refwidth: float32): SizeF =
   ## Gets the size of a block of text. If `refwidth > 0` then the resulting
   ## width will be bounded by this value and the resulting height will expand
   ## to accomodate all the text.
@@ -424,12 +424,12 @@ proc getExtents*(ctx: var DCtx, text: string, refwidth: float32): tuple[width: f
     result.width.addr, result.height.addr
   )
 
-template drawImage*(ctx: var DCtx, image: Image, x: float32, y: float32) =
+template drawImage*(ctx: var DCtx, image: Image, x, y: float32; ) =
   ## Draw an image.
   ##
   draw_image(ctx.impl, image.impl, x, y)
 
-template drawImage*(ctx: var DCtx, image: Image, frame: Natural, x: float32, y: float32) =
+template drawImage*(ctx: var DCtx, image: Image, frame: Natural, x, y: float32; ) =
   ## Draw a frame in an image. Only images created from a GIF support multiple
   ## frames.
   ##
@@ -443,56 +443,58 @@ template setImageAlign*(ctx: var DCtx, halign: HAlign, valign: VAlign) =
 template drawV2d*[T: SomeFloat](ctx: var DCtx, op: DrawOp, v2d: V2D[T], radius: float32) =
   ## Draws a point representing the given vector.
   ##
-  fdispatch[T](draw_v2df, draw_v2dd, ctx.impl, castEnum(op, drawop_t), v2d.unsafeAddr, radius)
+  fdispatch[T](draw_v2df, draw_v2dd, ctx.impl, castEnum(op, drawop_t), getPtr(toNag(v2d)), radius)
 
 template drawSeg2d*[T: SomeFloat](ctx: var DCtx, seg: Seg2D[T]) =
   ## Draws a line segment.
   ##
-  fdispatch[T](draw_seg2df, draw_seg2dd, ctx.impl, seg.unsafeAddr)
+  fdispatch[T](draw_seg2df, draw_seg2dd, ctx.impl, getPtr(toNag(seg)))
 
 template drawCir2d*[T: SomeFloat](ctx: var DCtx, op: DrawOp, cir: Cir2D[T]) =
   ## Draws a circle.
   ##
-  fdispatch[T](draw_cir2df, draw_cir2dd, ctx.impl, castEnum(op, drawop_t), cir.unsafeAddr)
+  fdispatch[T](draw_cir2df, draw_cir2dd, ctx.impl, castEnum(op, drawop_t), getPtr(toNag(cir)))
 
 template drawBox2d*[T: SomeFloat](ctx: var DCtx, op: DrawOp, box: Box2D[T]) =
   ## Draws a box.
   ##
-  fdispatch[T](draw_box2df, draw_box2dd, ctx.impl, castEnum(op, drawop_t), box.unsafeAddr)
+  fdispatch[T](draw_box2df, draw_box2dd, ctx.impl, castEnum(op, drawop_t), getPtr(toNag(box)))
 
 template drawObb2d*[T: SomeFloat](ctx: var DCtx, op: DrawOp, obb: OBB2D[T]) =
   ## Draws an oriented box.
   ##
-  fdispatch[T](draw_obb2df, draw_obb2dd, ctx.impl, castEnum(op, drawop_t), obb.unsafeAddr)
+  fdispatch[T](draw_obb2df, draw_obb2dd, ctx.impl, castEnum(op, drawop_t), obb.impl)
 
 template drawTri2d*[T: SomeFloat](ctx: var DCtx, op: DrawOp, tri: Tri2D[T]) =
   ## Draws a triangle.
   ##
-  fdispatch[T](draw_tri2df, draw_tri2dd, ctx.impl, castEnum(op, drawop_t), tri.unsafeAddr)
+  fdispatch[T](draw_tri2df, draw_tri2dd, ctx.impl, castEnum(op, drawop_t), getPtr(toNag(tri)))
 
 template drawPol2d*[T: SomeFloat](ctx: var DCtx, op: DrawOp, pol: Pol2D[T]) =
   ## Draws a polygon.
   ## 
-  fdispatch[T](draw_pol2df, draw_pol2dd, ctx.impl, castEnum(op, drawop_t), pol.unsafeAddr)
+  fdispatch[T](draw_pol2df, draw_pol2dd, ctx.impl, castEnum(op, drawop_t), pol.impl)
 
 # ======================================================================= Color
 
-template color*(r: uint8, g: uint8, b: uint8): Color =
+# TODO: reimplement these in Nim for compile-time eval
+
+template color*(r, g, b: uint8; ): Color =
   ## Create a color using the given values for red, green and blue.
   ##
   color_rgb(r, g, b)
 
-template color*(r: uint8, g: uint8, b: uint8, a: uint8): Color =
+template color*(r, g, b, a: uint8; ): Color =
   ## Create a color using the given values for red, green, blue and alpha.
   ##
   color_rgba(r, g, b, a)
 
-template color*(r: float32, g: float32, b: float32, a: float32): Color =
+template color*(r, g, b, a: float32; ): Color =
   ## Convenience overload for float values in range 0.0f-1.0f.
   ##
   color_rgbaf(r, g, b, a)
 
-template color*(hue: float32, sat: float32, bright: float32): Color =
+template color*(hue, sat, bright: float32; ): Color =
   ## Create a color from a HSB pair (hue, saturation, brightness)
   ##
   color_hsbf(hue, sat, bright)
@@ -524,7 +526,7 @@ template bgr*(val: uint32): Color = color_bgr(val)
   ## Creates a color from a BGR value.
   ##
 
-proc toHsb*(color: Color): tuple[h: float32, s: float32, b: float32] =
+proc toHsb*(color: Color): tuple[h, s, b: float32; ] =
   ## Gets the HSB components of a color.
   ##
   color_to_hsbf(color, result.h.addr, result.s.addr, result.b.addr)
@@ -538,22 +540,22 @@ proc toHtml*(color: Color): string =
     if ch == '\0': break
     result.add(ch)
 
-proc getRgb*(color: Color): tuple[r: uint8, g: uint8, b: uint8] =
+proc getRgb*(color: Color): tuple[r, g, b: uint8; ] =
   ## Gets the individual RGB components of a color.
   ##
   color_get_rgb(color, result.r.addr, result.g.addr, result.b.addr)
 
-proc getRgbf*(color: Color): tuple[r: float32, g: float32, b: float32] =
+proc getRgbf*(color: Color): tuple[r, g, b: float32; ] =
   ## Gets the individual RGB components of a color, in floating point.
   ##
   color_get_rgbf(color, result.r.addr, result.g.addr, result.b.addr)
   
-proc getRgba*(color: Color): tuple[r: uint8, g: uint8, b: uint8, a: uint8] =
+proc getRgba*(color: Color): tuple[r, g, b, a: uint8; ] =
   ## Gets the individual RGB components of a color, including alpha.
   ##
   color_get_rgba(color, result.r.addr, result.g.addr, result.b.addr, result.a.addr)
 
-proc getRgbaf*(color: Color): tuple[r: float32, g: float32, b: float32, a: float32] =
+proc getRgbaf*(color: Color): tuple[r, g, b, a: float32; ] =
   ## Gets the individual RGB components of a color, including alpha, in
   ## floating point.
   ##
@@ -591,7 +593,7 @@ proc init*(T: typedesc[Palette], size: Natural): Palette =
   ##
   result.impl = palette_create(size.uint32)
 
-proc initCga2*(T: typedesc[Palette], mode: bool, intense: bool): Palette =
+proc initCga2*(T: typedesc[Palette], mode, intense: bool; ): Palette =
   ## Initialize a 2-bit palette with CGA colors. Use `mode = true` for CGA
   ## mode 1. Use `intense = true` for bright colors.
   ##
@@ -627,7 +629,7 @@ proc initGray8*(T: typedesc[Palette]): Palette =
   ##
   result.impl = palette_gray1()
 
-proc init*(T: typedesc[Palette], zero: Color, one: Color): Palette =
+proc init*(T: typedesc[Palette], zero, one: Color; ): Palette =
   ## Create a 2-color palette with the given colors for indices 0 and 1.
   ##
   result.impl = palette_binary(zero, one)
@@ -677,21 +679,22 @@ proc `=copy`*(d: var Pixbuf, s: Pixbuf) =
   `=destroy`(d)
   d.impl = pixbuf_copy(s.impl)
 
-proc init*(T: typedesc[Pixbuf], width: Natural, height: Natural,
+proc init*(T: typedesc[Pixbuf], width, height: Natural;
            format = Pixformat.rgba32): Pixbuf =
   ## Creates a Pixbuf with the given width, height and pixel format.
   ##
   result.impl = pixbuf_create(width.uint32, height.uint32, castEnum(format, pixformat_t))
 
-proc init*(T: typedesc[Pixbuf], pixbuf: Pixbuf, x: Natural, y: Natural,
-           width: Natural, height: Natural): Pixbuf =
+proc init*(T: typedesc[Pixbuf], pixbuf: Pixbuf, x, y, width, height: Natural;
+          ): Pixbuf =
   ## Creates a Pixbuf from an existing one, trimming the contents.
   ##
   result.impl = pixbuf_trim(
     pixbuf.impl, x.uint32, y.uint32, width.uint32, height.uint32
   )
 
-proc init*(T: typedesc[Pixbuf], pixbuf: Pixbuf, palette: Palette, format: Pixformat): Pixbuf =
+proc init*(T: typedesc[Pixbuf], pixbuf: Pixbuf, palette: Palette,
+           format: Pixformat): Pixbuf =
   ## Converts a pixbuf to another format. Depending on the format of `pixbuf`
   ## and the destination format, loss of information is possible.
   ##
@@ -733,12 +736,12 @@ template data*(pixbuf: var Pixbuf): ptr UncheckedArray[byte] =
   ##
   cast[ptr UncheckedArray[byte]](pixbuf_data(pixbuf.impl))
 
-template get*(pixbuf: Pixbuf, x: Natural, y: Natural): uint32 =
+template get*(pixbuf: Pixbuf, x, y: Natural; ): uint32 =
   ## Gets a pixel in the buffer at the given x and y coordinates.
   ##
   pixbuf_get(pixbuf.impl, x.uint32, y.uint32)
 
-template set*(pixbuf: Pixbuf, x: Natural, y: Natural, val: uint32) =
+template set*(pixbuf: Pixbuf, x, y: Natural; val: uint32) =
   ## Sets a pixel in the buffer at the given x and y coordinates.
   ##
   pixbuf_set(pixbuf.impl, x.uint32, y.uint32, val)
@@ -756,8 +759,8 @@ proc `=copy`*(d: var Image, s: Image) =
   `=destroy`(d)
   d.impl = image_copy(s.impl)
 
-proc init*(T: typedesc[Image], width: Natural, height: Natural,
-           format: Pixformat, data: openArray[byte]): Image =
+proc init*(T: typedesc[Image], width, height: Natural; format: Pixformat,
+           data: openArray[byte]): Image =
   ## Creates an image from a pixel buffer. Ensure that the size of `data` is
   ## correct, or equal to `width * height * bpp(format)`
   ##
@@ -766,10 +769,8 @@ proc init*(T: typedesc[Image], width: Natural, height: Natural,
     data[0].unsafeAddr, nil, 0
   )
 
-
-proc init*(T: typedesc[Image], width: Natural, height: Natural,
-           format: Pixformat, data: openArray[byte],
-           palette: openArray[Color]): Image =
+proc init*(T: typedesc[Image], width, height: Natural; format: Pixformat,
+           data: openArray[byte], palette: openArray[Color]): Image =
   ## Creates an image from a pixel buffer and color palette.
   ##
   result.impl = image_from_pixels(
@@ -789,15 +790,17 @@ proc init*(T: typedesc[Image], pathname: string): tuple[image: Image, error: FEr
   result.image.impl = image_from_file(pathname.cstring, err.addr)
   result.error = castEnum(err, FError)
 
-proc init*(T: typedesc[Image], image: Image, x: Natural, y: Natural,
-           width: Natural, height: Natural): Image =
+proc init*(T: typedesc[Image], image: Image, x, y, width, height: Natural;
+          ): Image =
   ## Creates an image by trimming an existing one. The new image will contain
   ## only the content within the given rectangle coordinates.
   ##
   result.impl = image_trim(image.impl, x.uint32, y.uint32, width.uint32, height.uint32)
 
-proc rotateImpl(image: Image, angle: float32, nsize: bool, background: Color, t2d: ptr MatrixF): Image =
-  result.impl = image_rotate(image.impl, angle, nsize.bool_t, background, t2d.impl.addr)
+proc rotateImpl(image: Image, angle: float32, nsize: bool, background: Color,
+                t2d: ptr MatrixF): Image =
+  result.impl = image_rotate(image.impl, angle, nsize.bool_t, background,
+                             toNag(t2d))
 
 proc init*(T: typedesc[Image], image: Image, angle: float32, nsize: bool, 
            background: Color, t2d: var MatrixF): Image =
@@ -814,7 +817,8 @@ proc init*(T: typedesc[Image], image: Image, angle: float32, nsize: bool,
   ##
   result = rotateImpl(image, angle, nsize, background, nil)
 
-proc init*(T: typedesc[Image], image: Image, nwidth: Natural, nheight: Natural): Image =
+proc init*(T: typedesc[Image], image: Image, nwidth, nheight: Natural;
+          ): Image =
   ## Create an image by scaling an existing one to a new width and height.
   ##
   result.impl = image_scale(image.impl, nwidth.uint32, nheight.uint32)
@@ -966,8 +970,7 @@ template style*(f: Font): set[FontStyle] =
   ## 
   cast[set[FontStyle]](font_style(f.impl))
 
-proc extents*(f: Font, text: string, refwidth: float32,
-              refheight: float32): tuple[width: float32, height: float32] =
+proc extents*(f: Font, text: string, refwidth, refheight: float32; ): SizeF =
   ## Calculates the size, in pixels, of a text string using this font.
   ## `refwidth` is the maximum width.
   font_extents(

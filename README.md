@@ -22,7 +22,7 @@ wrapped.
 | sewer           | partial   | not started          |
 | osbs            | done      | partial (just types) |
 | core            | done      | in progress          |
-| geom2d          | done      | in progress          |
+| geom2d          | done      | 90% done             |
 | draw2d          | done      | done                 |
 | gui             | done      | not started          |
 | osapp           | done      | not started          |
