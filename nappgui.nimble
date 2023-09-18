@@ -12,3 +12,18 @@ srcDir        = "src"
 # Dependencies
 
 requires "nim >= 1.4.0"
+
+import std/os
+
+task docs, "Generate documentation":
+  selfExec quoteShellCommand [
+    "--hints:off",
+    "--project",
+    "--index:on",
+    "--git.url:https://github.com/stoneface86/nappgui-nim",
+    "--git.commit:" & version,
+    "-p:" & srcDir,
+    "--outdir:htmldocs",
+    "doc",
+    srcDir / "nappgui.nim"
+  ]
